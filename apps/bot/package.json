@@ -13,13 +13,15 @@
     "deploy-commands": "tsx src/deploy-commands.ts"
   },
   "dependencies": {
+    "@sentinel/ai": "workspace:*",
     "@sentinel/core": "workspace:*",
     "@sentinel/database": "workspace:*",
     "@sentinel/shared": "workspace:*",
-    "@sentinel/ai": "workspace:*",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.7",
-    "i18next": "^24.2.0"
+    "i18next": "^24.2.0",
+    "kazagumo": "^3.4.3",
+    "shoukaku": "^4.3.0"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

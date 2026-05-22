@@ -1,0 +1,162 @@
+{
+  "key": "staff-heavy",
+  "label": "Staff Heavy",
+  "description": "Serveur très orienté gestion/staff",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Director",
+      "admin"
+    ],
+    [
+      "Head Moderator",
+      "moderator"
+    ],
+    [
+      "Moderator",
+      "staff"
+    ],
+    [
+      "Trial Moderator",
+      "support"
+    ],
+    [
+      "Support Team",
+      "support"
+    ],
+    [
+      "Event Team",
+      "event"
+    ],
+    [
+      "Booster",
+      "booster"
+    ],
+    [
+      "VIP",
+      "vip"
+    ],
+    [
+      "Member",
+      "member"
+    ],
+    [
+      "Visitor",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📌 Public",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "faq",
+        "changelog"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "💬 Community",
+      "text": [
+        "general",
+        "media",
+        "bot-commands",
+        "off-topic"
+      ],
+      "voice": [
+        "Community VC",
+        "Chill VC",
+        "AFK"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🎉 Events",
+      "text": [
+        "events",
+        "giveaways",
+        "polls"
+      ],
+      "voice": [
+        "Event VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "💡 Suggestions",
+      "text": [
+        "suggestions",
+        "feedback",
+        "bug-report"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🛡 Modération",
+      "text": [
+        "mod-chat",
+        "reports",
+        "sanctions",
+        "appeals",
+        "watchlist",
+        "mod-logs"
+      ],
+      "voice": [
+        "Mod VC",
+        "Trial VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Director",
+        "Head Moderator",
+        "Moderator",
+        "Trial Moderator"
+      ]
+    },
+    {
+      "name": "🎫 Support",
+      "text": [
+        "support-chat",
+        "ticket-review",
+        "faq-internal"
+      ],
+      "voice": [
+        "Support VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Director",
+        "Support Team"
+      ]
+    },
+    {
+      "name": "🔒 Direction",
+      "text": [
+        "directors",
+        "planning",
+        "private-logs",
+        "sanctions-graves",
+        "partenariats"
+      ],
+      "voice": [
+        "Directors VC",
+        "Board Room"
+      ],
+      "private_for": [
+        "Founder",
+        "Director"
+      ]
+    }
+  ]
+}

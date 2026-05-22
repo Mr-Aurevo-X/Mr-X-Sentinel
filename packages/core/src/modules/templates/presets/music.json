@@ -1,0 +1,147 @@
+{
+  "key": "music",
+  "label": "Music",
+  "description": "Serveur musique / artiste / fanbase",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Moderator",
+      "moderator"
+    ],
+    [
+      "Producer",
+      "creator"
+    ],
+    [
+      "DJ",
+      "creator"
+    ],
+    [
+      "Event Team",
+      "event"
+    ],
+    [
+      "Booster",
+      "booster"
+    ],
+    [
+      "VIP Listener",
+      "vip"
+    ],
+    [
+      "Listener",
+      "member"
+    ],
+    [
+      "Guest",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "🎵 Infos",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "releases",
+        "schedule",
+        "merch"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🎶 Communauté",
+      "text": [
+        "general",
+        "music-share",
+        "playlists",
+        "recommendations",
+        "media",
+        "off-topic"
+      ],
+      "voice": [
+        "Listening Room 1",
+        "Listening Room 2",
+        "Chill VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🎚 Production",
+      "text": [
+        "beats",
+        "mixing",
+        "mastering",
+        "feedback",
+        "collabs",
+        "resources"
+      ],
+      "voice": [
+        "Studio VC",
+        "Jam Session"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "📻 Radio & Bots",
+      "text": [
+        "bot-commands",
+        "music-bot",
+        "requests"
+      ],
+      "voice": [
+        "Radio VC",
+        "DJ Booth"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🎉 Events",
+      "text": [
+        "events",
+        "listening-party",
+        "contests",
+        "polls"
+      ],
+      "voice": [
+        "Concert Hall",
+        "Event VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🔒 Backstage",
+      "text": [
+        "team-chat",
+        "private-projects",
+        "planning",
+        "artist-room"
+      ],
+      "voice": [
+        "Backstage VC",
+        "Label Room"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Moderator",
+        "Producer",
+        "DJ",
+        "Event Team"
+      ]
+    }
+  ]
+}

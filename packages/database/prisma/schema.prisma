@@ -51,7 +51,24 @@ model Guild {
   wallets      UserWallet[]
   xpRecords    UserXp[]
   shopItems    ShopItem[]
-  aiThreads    AiConversation[]
+  aiThreads      AiConversation[]
+  ticketChannels TicketChannel[]
+}
+
+model TicketChannel {
+  id         String   @id @default(cuid())
+  guildId    String
+  channelId  String   @unique
+  ownerId    String
+  claimedBy  String?
+  status     String   @default("open")
+  ticketType String   @default("support")
+  createdAt  DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, ownerId])
+  @@index([guildId, status])
 }
 
 model GuildLogChannel {

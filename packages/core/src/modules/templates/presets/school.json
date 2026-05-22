@@ -1,0 +1,121 @@
+{
+  "key": "school",
+  "label": "School",
+  "description": "Serveur scolaire / étude",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Teacher",
+      "moderator"
+    ],
+    [
+      "Tutor",
+      "staff"
+    ],
+    [
+      "Class Rep",
+      "support"
+    ],
+    [
+      "Student",
+      "member"
+    ],
+    [
+      "New Student",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📚 Informations",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "planning",
+        "resources",
+        "faq"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "📝 Cours",
+      "text": [
+        "general",
+        "maths",
+        "sciences",
+        "litterature",
+        "histoire",
+        "langues"
+      ],
+      "voice": [
+        "Cours 1",
+        "Cours 2",
+        "Cours 3"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🧠 Révisions",
+      "text": [
+        "homework-help",
+        "exam-talk",
+        "fiches",
+        "exercices",
+        "correction"
+      ],
+      "voice": [
+        "Study Room 1",
+        "Study Room 2",
+        "Study Room 3"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🎉 Hors cours",
+      "text": [
+        "off-topic",
+        "memes",
+        "media",
+        "jeux",
+        "sorties"
+      ],
+      "voice": [
+        "Détente VC",
+        "Gaming VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "👨‍🏫 Staff Scolaire",
+      "text": [
+        "staff-room",
+        "reports",
+        "private-notes",
+        "planning-cours"
+      ],
+      "voice": [
+        "Teachers VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Teacher",
+        "Tutor",
+        "Class Rep"
+      ]
+    }
+  ]
+}

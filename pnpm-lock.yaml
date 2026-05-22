@@ -50,6 +50,12 @@ importers:
       i18next:
         specifier: ^24.2.0
         version: 24.2.3(typescript@5.9.3)
+      kazagumo:
+        specifier: ^3.4.3
+        version: 3.4.3
+      shoukaku:
+        specifier: ^4.3.0
+        version: 4.3.0
     devDependencies:
       tsx:
         specifier: ^4.19.2
@@ -1472,6 +1478,10 @@ packages:
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
 
+  kazagumo@3.4.3:
+    resolution: {integrity: sha512-0Y0MJgfjHQICdnPQTNyHKnDTBBcyMCvUDw/GJ2X8svn//gkrPlod31fnf8nUuSuCmU2cFv7ymVcQXaqgJWcddw==}
+    engines: {node: '>=16.5.0'}
+
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
@@ -1790,6 +1800,10 @@ packages:
   shell-quote@1.8.3:
     resolution: {integrity: sha512-ObmnIF4hXNg1BqhnHmgbDETF8dLPCggZWBjkQfhZpbszZnYur5DUljTcCHii5LC3J5E0yeO/1LIMyH+UvHQgyw==}
     engines: {node: '>= 0.4'}
+
+  shoukaku@4.3.0:
+    resolution: {integrity: sha512-jMEqVKvquGEqysnOL7a1hmnOAEJO47kTLoS7cGJLbIya3olSlFkMq7jbrrENijnx8fujXvMgUmQqwEdQk/Rkug==}
+    engines: {node: '>=18.0.0', npm: '>=7.0.0'}
 
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
@@ -3176,6 +3190,13 @@ snapshots:
 
   json-stable-stringify-without-jsonify@1.0.1: {}
 
+  kazagumo@3.4.3:
+    dependencies:
+      shoukaku: 4.3.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
@@ -3524,6 +3545,13 @@ snapshots:
   shebang-regex@3.0.0: {}
 
   shell-quote@1.8.3: {}
+
+  shoukaku@4.3.0:
+    dependencies:
+      ws: 8.20.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   siginfo@2.0.0: {}
 

@@ -3,6 +3,7 @@ import { DEFAULT_AUTOMOD } from "@sentinel/shared";
 import { getGuildConfig, isWhitelisted, prisma } from "@sentinel/database";
 import { incrementWindow, REDIS_KEYS } from "../redis.js";
 import { modLogService } from "../services/ModLogService.js";
+import { logService } from "../services/LogService.js";
 import {
   analyzeWithBrain,
   BRAIN_SPAM_THRESHOLD,
@@ -90,6 +91,20 @@ export class AutomodModule {
     }
 
     if (violations.length === 0) return;
+
+    const brainHit = violations.some((v) => v.startsWith("MrXBrain"));
+    if (brainHit) {
+      await logService.log(this.client, message.guild!.id, "brain", {
+        title: "Mr-X Brain",
+        description: violations.filter((v) => v.startsWith("MrXBrain")).join("\n"),
+        actorId: message.author.id,
+      });
+    }
+    await logService.log(this.client, message.guild!.id, "automod", {
+      title: "Automod",
+      description: violations.join("\n"),
+      actorId: message.author.id,
+    });
 
     await message.delete().catch(() => undefined);
 

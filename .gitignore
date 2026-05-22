@@ -9,3 +9,14 @@ coverage/
 .turbo/
 *.tsbuildinfo
 prisma/*.db
+services/brain/__pycache__/
+services/brain/.venv/
+services/brain/brain.db
+services/brain/.env
+services/brain/.git/
+services/brain/objects/
+services/brain/logs/
+services/brain/refs/
+services/brain/hooks/
+services/brain/info/
+services/brain/cursor/

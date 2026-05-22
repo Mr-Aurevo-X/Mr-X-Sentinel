@@ -21,6 +21,7 @@ import {
 import { getOrCreateGuild } from "@sentinel/database";
 import { t } from "./i18n/index.js";
 import { handleInteraction } from "./commands/index.js";
+import { musicManager } from "./music/MusicManager.js";
 
 export function createClient(): Client {
   const client = new Client({
@@ -47,6 +48,9 @@ export function createClient(): Client {
 
   client.once(Events.ClientReady, async (c) => {
     await getRedis().connect().catch(() => getRedis());
+    await musicManager.init(c).catch((err) => {
+      logger.warn({ err }, "Lavalink indisponible — musique désactivée");
+    });
     c.user.setActivity("Mr-X Sentinel", { type: ActivityType.Watching });
     logger.info(t("ready", "fr", { guilds: String(c.guilds.cache.size) }));
 
@@ -101,6 +105,34 @@ export function createClient(): Client {
     if (result.leveledUp) {
       await levelsService.logLevelUp(client, message.guild.id, message.author.id, result.level);
     }
+  });
+
+  client.on(Events.MessageDelete, async (message) => {
+    if (!message.guild || message.author?.bot) return;
+    const features = await getGuildFeatures(message.guild.id);
+    if (!features.community) return;
+    const content = message.partial
+      ? "(message partiel)"
+      : (message.content?.slice(0, 500) || "(vide)");
+    await logService.log(client, message.guild.id, "message", {
+      title: "Message supprimé",
+      description: `${message.author?.tag ?? "?"} dans <#${message.channelId}>\n${content}`,
+      actorId: message.author?.id,
+    });
+  });
+
+  client.on(Events.MessageUpdate, async (oldMsg, newMsg) => {
+    if (!newMsg.guild || newMsg.author?.bot) return;
+    const features = await getGuildFeatures(newMsg.guild.id);
+    if (!features.community) return;
+    const before = oldMsg.partial ? "" : (oldMsg.content ?? "");
+    const after = newMsg.content ?? "";
+    if (before === after) return;
+    await logService.log(client, newMsg.guild.id, "message", {
+      title: "Message modifié",
+      description: `<@${newMsg.author.id}> dans <#${newMsg.channelId}>\n~~${before.slice(0, 200)}~~\n→ ${after.slice(0, 200)}`,
+      actorId: newMsg.author.id,
+    });
   });
 
   antiNuke.register();

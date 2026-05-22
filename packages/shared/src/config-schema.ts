@@ -43,6 +43,12 @@ export const automodConfigSchema = z.object({
   newAccountHours: z.number().int().min(0).max(168).default(24),
 });
 
+export const ticketConfigSchema = z.object({
+  panelChannelId: z.string().nullable().default(null),
+  categoryId: z.string().nullable().default(null),
+  supportRoleIds: z.array(z.string()).default([]),
+});
+
 export const verificationConfigSchema = z.object({
   enabled: z.boolean().default(false),
   channelId: z.string().nullable().default(null),
@@ -57,6 +63,7 @@ export const guildConfigSchema = z.object({
   alertWebhookUrl: z.string().url().nullable().default(null),
   quarantineRoleId: z.string().nullable().default(null),
   features: guildFeaturesSchema.default(defaultGuildFeatures()),
+  tickets: ticketConfigSchema.default({}),
   antiNuke: antiNukeConfigSchema,
   antiRaid: antiRaidConfigSchema,
   automod: automodConfigSchema,

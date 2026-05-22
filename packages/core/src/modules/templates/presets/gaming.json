@@ -1,0 +1,143 @@
+{
+  "key": "gaming",
+  "label": "Gaming",
+  "description": "Serveur gaming riche",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Moderator",
+      "moderator"
+    ],
+    [
+      "Game Master",
+      "staff"
+    ],
+    [
+      "Streamer",
+      "creator"
+    ],
+    [
+      "Tournament Player",
+      "vip"
+    ],
+    [
+      "Booster",
+      "booster"
+    ],
+    [
+      "Player",
+      "member"
+    ],
+    [
+      "New Player",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📢 Infos",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "patch-notes",
+        "updates",
+        "faq"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🎮 Gaming",
+      "text": [
+        "general-chat",
+        "looking-for-group",
+        "clips",
+        "screenshots",
+        "highlights",
+        "bot-commands"
+      ],
+      "voice": [
+        "Lobby 1",
+        "Lobby 2",
+        "Lobby 3",
+        "Casual Room",
+        "AFK"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🏆 Compétitif",
+      "text": [
+        "ranked-chat",
+        "team-finder",
+        "scrims",
+        "results",
+        "leaderboard"
+      ],
+      "voice": [
+        "Ranked Room 1",
+        "Ranked Room 2",
+        "Scrim 1",
+        "Scrim 2"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "📺 Stream",
+      "text": [
+        "stream-announce",
+        "vods",
+        "clip-review"
+      ],
+      "voice": [
+        "Stream Room",
+        "Watch Party"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "💡 Communauté",
+      "text": [
+        "suggestions",
+        "bug-report",
+        "off-topic",
+        "memes"
+      ],
+      "voice": [
+        "Chill VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🛡 Staff Gaming",
+      "text": [
+        "staff-chat",
+        "reports",
+        "ban-log",
+        "appeals",
+        "staff-planning"
+      ],
+      "voice": [
+        "Staff VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Moderator",
+        "Game Master"
+      ]
+    }
+  ]
+}

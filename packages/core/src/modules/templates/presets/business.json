@@ -1,0 +1,132 @@
+{
+  "key": "business",
+  "label": "Business",
+  "description": "Serveur entreprise / équipe",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Director",
+      "admin"
+    ],
+    [
+      "Manager",
+      "moderator"
+    ],
+    [
+      "Team Lead",
+      "staff"
+    ],
+    [
+      "Employee",
+      "member"
+    ],
+    [
+      "Intern",
+      "support"
+    ],
+    [
+      "Client VIP",
+      "vip"
+    ],
+    [
+      "Partner",
+      "partner"
+    ],
+    [
+      "Guest",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📌 Entreprise",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "resources",
+        "changelog"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "💼 Travail",
+      "text": [
+        "general",
+        "projects",
+        "tasks",
+        "deadlines",
+        "ideas",
+        "tools"
+      ],
+      "voice": [
+        "Meeting Room 1",
+        "Meeting Room 2",
+        "Quick Call"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🤝 Clients",
+      "text": [
+        "client-support",
+        "client-feedback",
+        "partnerships"
+      ],
+      "voice": [
+        "Client Call"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "📊 Rapports",
+      "text": [
+        "reports",
+        "kpi",
+        "weekly-recap",
+        "team-updates"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🎉 Équipe",
+      "text": [
+        "off-topic",
+        "team-wins",
+        "birthdays"
+      ],
+      "voice": [
+        "Team Lounge"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🔐 Direction",
+      "text": [
+        "management",
+        "strategy",
+        "finance",
+        "confidential",
+        "hr"
+      ],
+      "voice": [
+        "Board Room",
+        "Directors VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Director",
+        "Manager"
+      ]
+    }
+  ]
+}

@@ -13,8 +13,28 @@ import {
 import { prisma, getGuildConfig } from "@sentinel/database";
 import { BRAND_COLOR } from "@sentinel/shared";
 import { chatCompletion, resetConversation } from "@sentinel/ai";
+import { templateService } from "@sentinel/core";
 import { buildFonctionnementEmbed, buildFonctionnementView } from "./fonctionnement.js";
-import { buildSentinelHub, handleComponent } from "../interaction-router.js";
+import { buildSentinelHub, buildLogsPanel, handleComponent } from "../interaction-router.js";
+import {
+  handleConfig,
+  handleAdmin,
+  handleTicket,
+  handleFun,
+  handleBalance,
+  handlePay,
+  handleRob,
+  handleCrime,
+  handleDeposit,
+  handleWithdraw,
+  handleLeaderboard,
+  handleShop,
+  handleSuggest,
+  handleBrain,
+  handleClearwarn,
+  handleNickname,
+  handlePlayMusic,
+} from "./extended.js";
 
 export async function handleInteraction(
   interaction: Interaction,
@@ -41,7 +61,23 @@ export async function handleInteraction(
     else if (name === "help") await handleHelp(interaction);
     else if (name === "rank") await handleRank(interaction);
     else if (name === "chat") await handleChat(interaction);
-    else if (name === "play") await handlePlay(interaction);
+    else if (name === "play") await handlePlayMusic(interaction, client);
+    else if (name === "config") await handleConfig(interaction);
+    else if (name === "admin") await handleAdmin(interaction);
+    else if (name === "ticket") await handleTicket(interaction, client);
+    else if (name === "fun") await handleFun(interaction, client);
+    else if (name === "balance") await handleBalance(interaction);
+    else if (name === "pay") await handlePay(interaction, client);
+    else if (name === "rob") await handleRob(interaction, client);
+    else if (name === "crime") await handleCrime(interaction, client);
+    else if (name === "deposit") await handleDeposit(interaction);
+    else if (name === "withdraw") await handleWithdraw(interaction);
+    else if (name === "leaderboard") await handleLeaderboard(interaction);
+    else if (name === "shop") await handleShop(interaction, client);
+    else if (name === "suggest") await handleSuggest(interaction);
+    else if (name === "brain") await handleBrain(interaction);
+    else if (name === "clearwarn") await handleClearwarn(interaction);
+    else if (name === "nickname") await handleNickname(interaction);
     else if (name === "ban") await handleBan(interaction, moderation);
     else if (name === "unban") await handleUnban(interaction);
     else if (name === "kick") await handleKick(interaction, moderation);
@@ -68,6 +104,13 @@ async function handleSetup(
   await interaction.deferReply({ ephemeral: true });
   const guild = interaction.guild!;
   const createLogs = interaction.options.getBoolean("create_logs") ?? true;
+  const templateKey = interaction.options.getString("template");
+
+  if (templateKey) {
+    await templateService.apply(guild, templateKey, client, interaction.user.id, {
+      createLogs: false,
+    });
+  }
 
   let quarantineRole = guild.roles.cache.find((r) => r.name === "Quarantine");
   if (!quarantineRole) {
@@ -100,6 +143,7 @@ async function handleSetup(
   await interaction.editReply({
     content:
       "Setup Mr-X Sentinel terminé." +
+      (templateKey ? ` Template **${templateKey}** appliqué.` : "") +
       (createLogs ? " Salons logs créés." : "") +
       " Lance **/fonctionnement** (owner) pour le guide complet.",
   });
@@ -134,10 +178,11 @@ async function handleLogs(interaction: ChatInputCommandInteraction) {
     });
     return;
   }
-  await interaction.reply({
-    content: "Utilise **/logs create** ou le bouton dans **/fonctionnement**.",
-    ephemeral: true,
-  });
+  const embed = new EmbedBuilder()
+    .setColor(BRAND_COLOR)
+    .setTitle("Logs Sentinel")
+    .setDescription("12 types de logs — catégorie **Logs Sentinel** + rôle **Logs**.");
+  await interaction.reply({ embeds: [embed], components: buildLogsPanel(), ephemeral: true });
 }
 
 async function handleSentinel(interaction: ChatInputCommandInteraction) {
@@ -207,7 +252,7 @@ async function handleHelp(interaction: ChatInputCommandInteraction) {
     .setColor(BRAND_COLOR)
     .setTitle("Aide Mr-X Sentinel")
     .setDescription(
-      "Membres : `/sentinel menu` `/rank` `/play` `/chat`\nStaff : `/ban` `/kick` … `/panel`\nOwner : `/setup` `/fonctionnement` `/logs`",
+      "Hub : `/sentinel menu` | Eco : `/balance` `/pay` `/shop` `/fun`\nMod : `/ban` `/kick` `/ticket` | Owner : `/setup` `/fonctionnement`",
     );
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -231,14 +276,6 @@ async function handleChat(interaction: ChatInputCommandInteraction) {
   const prompt = interaction.options.getString("prompt", true);
   const reply = await chatCompletion(interaction.user.id, interaction.guild!.id, prompt);
   await interaction.editReply({ content: reply.slice(0, 2000) });
-}
-
-async function handlePlay(interaction: ChatInputCommandInteraction) {
-  const q = interaction.options.getString("query", true);
-  await interaction.reply({
-    content: `Musique (Lavalink) : recherche \`${q}\` — assure-toi que le service Lavalink tourne (docker compose).`,
-    ephemeral: true,
-  });
 }
 
 async function handleBan(interaction: ChatInputCommandInteraction, mod: ModerationService) {

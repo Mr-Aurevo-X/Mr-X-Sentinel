@@ -1,0 +1,143 @@
+{
+  "key": "fivem",
+  "label": "FiveM",
+  "description": "Serveur FiveM / RP",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Moderator",
+      "moderator"
+    ],
+    [
+      "Staff RP",
+      "staff"
+    ],
+    [
+      "Developer",
+      "creator"
+    ],
+    [
+      "Event Team",
+      "event"
+    ],
+    [
+      "VIP",
+      "vip"
+    ],
+    [
+      "Citizen",
+      "member"
+    ],
+    [
+      "Newcomer",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📍 Informations",
+      "text": [
+        "welcome",
+        "rules",
+        "how-to-join",
+        "announcements",
+        "whitelist",
+        "faq"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🚓 Roleplay",
+      "text": [
+        "general-rp",
+        "city-news",
+        "lost-and-found",
+        "rp-clips",
+        "screenshots"
+      ],
+      "voice": [
+        "City 1",
+        "City 2",
+        "City 3",
+        "Waiting Room"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🏙 Vie en ville",
+      "text": [
+        "factions",
+        "marketplace",
+        "job-offers",
+        "real-estate",
+        "events-rp"
+      ],
+      "voice": [
+        "District 1",
+        "District 2"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🧰 Développement",
+      "text": [
+        "server-dev",
+        "scripts",
+        "suggestions",
+        "bug-report",
+        "changelog-dev"
+      ],
+      "voice": [
+        "Dev VC",
+        "Test Server VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🎉 Events",
+      "text": [
+        "events",
+        "giveaways",
+        "community-event"
+      ],
+      "voice": [
+        "Event VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🔒 Staff FiveM",
+      "text": [
+        "staff-rp",
+        "staff-reports",
+        "sanctions",
+        "whitelist-review",
+        "private-log"
+      ],
+      "voice": [
+        "Staff VC",
+        "Admin Room"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Moderator",
+        "Staff RP",
+        "Developer",
+        "Event Team"
+      ]
+    }
+  ]
+}

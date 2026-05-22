@@ -1,0 +1,140 @@
+{
+  "key": "esport",
+  "label": "Esport",
+  "description": "Serveur team esport / compétition",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Manager",
+      "admin"
+    ],
+    [
+      "Coach",
+      "moderator"
+    ],
+    [
+      "Analyst",
+      "staff"
+    ],
+    [
+      "Streamer",
+      "creator"
+    ],
+    [
+      "Captain",
+      "vip"
+    ],
+    [
+      "Player",
+      "member"
+    ],
+    [
+      "Sub",
+      "member"
+    ],
+    [
+      "Trial Player",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📢 Team Info",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "schedule",
+        "results",
+        "sponsors"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🎯 Team Life",
+      "text": [
+        "general",
+        "team-chat",
+        "media",
+        "clips",
+        "off-topic"
+      ],
+      "voice": [
+        "Team VC",
+        "Chill VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "📊 Analyse",
+      "text": [
+        "match-prep",
+        "vod-review",
+        "stats",
+        "meta",
+        "opponent-analysis"
+      ],
+      "voice": [
+        "Review VC",
+        "Strategy Room"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🏆 Compétition",
+      "text": [
+        "scrims",
+        "lineup",
+        "tournament-chat",
+        "match-results"
+      ],
+      "voice": [
+        "Match Room 1",
+        "Match Room 2",
+        "Scrim Room 1",
+        "Scrim Room 2"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "📺 Stream",
+      "text": [
+        "stream-announce",
+        "vods",
+        "highlights"
+      ],
+      "voice": [
+        "Stream Room"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🔒 Staff Esport",
+      "text": [
+        "management",
+        "scouting",
+        "transfers",
+        "private-reports",
+        "finance"
+      ],
+      "voice": [
+        "Staff VC",
+        "Coaching VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Manager",
+        "Coach",
+        "Analyst"
+      ]
+    }
+  ]
+}

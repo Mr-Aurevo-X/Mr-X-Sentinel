@@ -1,0 +1,153 @@
+{
+  "key": "roleplay",
+  "label": "Roleplay",
+  "description": "Serveur RP général",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Moderator",
+      "moderator"
+    ],
+    [
+      "Lore Master",
+      "staff"
+    ],
+    [
+      "Event Master",
+      "event"
+    ],
+    [
+      "VIP",
+      "vip"
+    ],
+    [
+      "Veteran",
+      "vip"
+    ],
+    [
+      "Citizen",
+      "member"
+    ],
+    [
+      "Traveler",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📜 Lore",
+      "text": [
+        "welcome",
+        "rules",
+        "world-lore",
+        "announcements",
+        "codex",
+        "factions-info"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "📝 Inscriptions",
+      "text": [
+        "character-sheet",
+        "character-validation",
+        "races-classes",
+        "tutorials"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🏘 RP Public",
+      "text": [
+        "town-square",
+        "tavern",
+        "market",
+        "general-rp",
+        "open-scenes"
+      ],
+      "voice": [
+        "Town Square VC",
+        "Tavern VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🌍 Zones",
+      "text": [
+        "forest",
+        "dungeons",
+        "castle",
+        "harbor",
+        "wilderness"
+      ],
+      "voice": [
+        "Zone VC 1",
+        "Zone VC 2"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "⚔ Events RP",
+      "text": [
+        "quests",
+        "campaigns",
+        "duels",
+        "war-stories",
+        "event-results"
+      ],
+      "voice": [
+        "Quest Room",
+        "Battle Room",
+        "Event Master VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "💬 Hors-RP",
+      "text": [
+        "ooc-general",
+        "suggestions",
+        "media",
+        "off-topic"
+      ],
+      "voice": [
+        "OOC VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🔒 RP Staff",
+      "text": [
+        "staff-lore",
+        "character-review",
+        "reports",
+        "private-events",
+        "dm-planning"
+      ],
+      "voice": [
+        "Staff VC",
+        "Event Planning VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Moderator",
+        "Lore Master",
+        "Event Master"
+      ]
+    }
+  ]
+}
