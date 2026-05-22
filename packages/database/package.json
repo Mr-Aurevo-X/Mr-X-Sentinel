@@ -14,15 +14,16 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "generate": "prisma generate",
-    "migrate": "prisma migrate dev",
-    "push": "prisma db push"
+    "generate": "dotenv -e ../../.env -- prisma generate",
+    "migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "push": "dotenv -e ../../.env -- prisma db push"
   },
   "dependencies": {
-    "@sentinel/shared": "workspace:*",
-    "@prisma/client": "^6.1.0"
+    "@prisma/client": "^6.1.0",
+    "@sentinel/shared": "workspace:*"
   },
   "devDependencies": {
+    "dotenv-cli": "^11.0.0",
     "prisma": "^6.1.0",
     "typescript": "^5.7.2"
   }

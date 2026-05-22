@@ -97,7 +97,7 @@ pnpm --filter @sentinel/bot deploy-commands
 pnpm dev:bot
 ```
 
-> Le fichier **`.env` n’est pas sur GitHub** (secrets). Il est ignoré par git — créez-le depuis `.env.example`.
+> Le fichier **`.env` n’est pas sur GitHub** (secrets). Il est ignoré par git — créez-le depuis `.env.example` à la **racine** du projet (`Mr-X-Sentinel/.env`). Les commandes `pnpm db:*` chargent ce fichier automatiquement.
 
 ---
 
@@ -110,7 +110,7 @@ pnpm dev:bot
 | `DISCORD_CLIENT_SECRET` | Dashboard | Portal → OAuth2 → Client Secret |
 | `BOT_OWNER_ID` | Recommandé | Votre ID Discord |
 | `SHARD_COUNT` | Non | Laisser vide (sharding inutile sur petits serveurs) |
-| `DATABASE_URL` | Oui | `postgresql://mrx:mrx@localhost:5432/sentinel` (Docker) |
+| `DATABASE_URL` | Oui | `postgresql://mrx:mrx@localhost:5433/sentinel` (Docker, port **5433** évite conflit avec Postgres Windows) |
 | `REDIS_URL` | Oui | `redis://localhost:6379` |
 | `NEXTAUTH_SECRET` | Dashboard | Chaîne aléatoire 32+ caractères |
 | `NEXTAUTH_URL` | Dashboard | `http://localhost:3000` |
@@ -149,7 +149,7 @@ http://localhost:3000/api/auth/callback/discord
 
 | Service | Port | Rôle |
 |---------|------|------|
-| `postgres` | 5432 | Base `sentinel` (user/pass `mrx`) |
+| `postgres` | **5433** (hôte) → 5432 (conteneur) | Base `sentinel` (user/pass `mrx`) |
 | `redis` | 6379 | Files, lockdown, restore |
 | `lavalink` | 2333 | Lecture musique |
 
@@ -331,7 +331,7 @@ Mr-X-Sentinel/
 |----------|----------|
 | `docker` non reconnu | Installer **Docker Desktop**, le lancer, redémarrer PowerShell |
 | Fichier `.env` invisible | Cursor : Ctrl+P → `.env` ; Windows : afficher les fichiers masqués |
-| `pnpm db:push` échoue | `docker compose up -d` et attendre que Postgres soit prêt |
+| `pnpm db:push` échoue | `docker compose up -d` ; utiliser le port **5433** dans `DATABASE_URL` (conflit si Postgres Windows tourne sur 5432) |
 | Bot ne démarre pas | Vérifier `DISCORD_TOKEN` et `DATABASE_URL` dans `.env` |
 | Slash commands absentes | `pnpm --filter @sentinel/bot deploy-commands` |
 | `/chat` ne répond pas | Renseigner `OPENAI_API_KEY` (Groq), redémarrer le bot |
