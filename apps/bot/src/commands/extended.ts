@@ -295,10 +295,14 @@ export async function handleSuggest(interaction: ChatInputCommandInteraction) {
 export async function handleBrain(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply({ ephemeral: true });
   try {
-    const res = await fetch(`${BRAIN_URL}/health`, { signal: AbortSignal.timeout(3000) });
-    const ok = res.ok;
+    const res = await fetch(`${BRAIN_URL}/status`, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) {
+      await interaction.editReply({ content: `Mr-X Brain : HTTP ${res.status}` });
+      return;
+    }
+    const data = (await res.json()) as { samples?: number; ready?: boolean };
     await interaction.editReply({
-      content: ok ? "Mr-X Brain : **en ligne**" : `Brain : HTTP ${res.status}`,
+      content: `Mr-X Brain : **en ligne** — ${data.samples ?? "?"} exemples d'entraînement`,
     });
   } catch {
     await interaction.editReply({
