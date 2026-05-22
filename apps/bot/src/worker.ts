@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./load-env.js";
 import { Client, GatewayIntentBits } from "discord.js";
 import { startRestoreWorker } from "@sentinel/core";
 import { config, validateConfig } from "./config.js";

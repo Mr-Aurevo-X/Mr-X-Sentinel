@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { REST, Routes } from "discord.js";
 import { commands } from "./commands/definitions.js";
 import { config, validateConfig } from "./config.js";

@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./load-env.js";
 
 export const config = {
   token: process.env.DISCORD_TOKEN ?? "",

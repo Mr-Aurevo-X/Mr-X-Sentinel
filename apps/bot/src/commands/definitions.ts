@@ -70,36 +70,52 @@ export const commands = [
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
 
   modCmd("ban", "Bannir un membre")
-    .addUserOption((o) => o.setName("user").setRequired(true))
-    .addStringOption((o) => o.setName("reason").setRequired(true))
-    .addIntegerOption((o) => o.setName("delete_days").setMinValue(0).setMaxValue(7)),
+    .addUserOption((o) => o.setName("user").setDescription("Membre à bannir").setRequired(true))
+    .addStringOption((o) => o.setName("reason").setDescription("Raison du ban").setRequired(true))
+    .addIntegerOption((o) =>
+      o.setName("delete_days").setDescription("Jours de messages à supprimer").setMinValue(0).setMaxValue(7),
+    ),
 
-  modCmd("unban", "Débannir").addStringOption((o) => o.setName("user_id").setRequired(true)),
+  modCmd("unban", "Débannir").addStringOption((o) =>
+    o.setName("user_id").setDescription("ID Discord du membre").setRequired(true),
+  ),
 
   modCmd("kick", "Expulser un membre")
-    .addUserOption((o) => o.setName("user").setRequired(true))
-    .addStringOption((o) => o.setName("reason").setRequired(true)),
+    .addUserOption((o) => o.setName("user").setDescription("Membre à expulser").setRequired(true))
+    .addStringOption((o) => o.setName("reason").setDescription("Raison").setRequired(true)),
 
   modCmd("mute", "Mute (timeout)")
-    .addUserOption((o) => o.setName("user").setRequired(true))
-    .addStringOption((o) => o.setName("reason").setRequired(true))
-    .addIntegerOption((o) => o.setName("minutes").setRequired(true).setMinValue(1).setMaxValue(40320)),
+    .addUserOption((o) => o.setName("user").setDescription("Membre à mute").setRequired(true))
+    .addStringOption((o) => o.setName("reason").setDescription("Raison").setRequired(true))
+    .addIntegerOption((o) =>
+      o.setName("minutes").setDescription("Durée en minutes").setRequired(true).setMinValue(1).setMaxValue(40320),
+    ),
 
-  modCmd("unmute", "Retirer le mute").addUserOption((o) => o.setName("user").setRequired(true)),
+  modCmd("unmute", "Retirer le mute").addUserOption((o) =>
+    o.setName("user").setDescription("Membre").setRequired(true),
+  ),
 
   modCmd("warn", "Avertir")
-    .addUserOption((o) => o.setName("user").setRequired(true))
-    .addStringOption((o) => o.setName("reason").setRequired(true)),
+    .addUserOption((o) => o.setName("user").setDescription("Membre").setRequired(true))
+    .addStringOption((o) => o.setName("reason").setDescription("Raison").setRequired(true)),
 
-  modCmd("warnings", "Voir les avertissements").addUserOption((o) => o.setName("user").setRequired(true)),
+  modCmd("warnings", "Voir les avertissements").addUserOption((o) =>
+    o.setName("user").setDescription("Membre").setRequired(true),
+  ),
 
   modCmd("clear", "Supprimer des messages")
-    .addIntegerOption((o) => o.setName("amount").setRequired(true).setMinValue(1).setMaxValue(100))
-    .addUserOption((o) => o.setName("user").setRequired(false)),
+    .addIntegerOption((o) =>
+      o.setName("amount").setDescription("Nombre de messages").setRequired(true).setMinValue(1).setMaxValue(100),
+    )
+    .addUserOption((o) => o.setName("user").setDescription("Filtrer par membre").setRequired(false)),
 
   modCmd("nuke", "Supprimer tous les messages du salon")
     .addChannelOption((o) =>
-      o.setName("channel").addChannelTypes(ChannelType.GuildText).setRequired(false),
+      o
+        .setName("channel")
+        .setDescription("Salon à vider")
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(false),
     ),
 
   new SlashCommandBuilder()
@@ -117,7 +133,10 @@ export const commands = [
     .addSubcommand((s) => s.setName("create").setDescription("Créer"))
     .addSubcommand((s) => s.setName("list").setDescription("Lister"))
     .addSubcommand((s) =>
-      s.setName("restore").addStringOption((o) => o.setName("id").setRequired(true)),
+      s
+        .setName("restore")
+        .setDescription("Restaurer un snapshot")
+        .addStringOption((o) => o.setName("id").setDescription("ID du snapshot").setRequired(true)),
     ),
 
   new SlashCommandBuilder()
@@ -127,7 +146,10 @@ export const commands = [
     .setName("chat")
     .setDescription("Discuter avec l'IA")
     .addSubcommand((s) =>
-      s.setName("message").addStringOption((o) => o.setName("prompt").setRequired(true)),
+      s
+        .setName("message")
+        .setDescription("Envoyer un message à l'IA")
+        .addStringOption((o) => o.setName("prompt").setDescription("Votre question").setRequired(true)),
     )
     .addSubcommand((s) => s.setName("reset").setDescription("Réinitialiser la conversation")),
 
@@ -150,6 +172,7 @@ export const commands = [
         .addStringOption((o) =>
           o
             .setName("module")
+            .setDescription("Module à modifier")
             .setRequired(true)
             .addChoices(
               { name: "Community", value: "community" },
@@ -160,7 +183,9 @@ export const commands = [
               { name: "AI", value: "ai" },
             ),
         )
-        .addBooleanOption((o) => o.setName("enabled").setRequired(true)),
+        .addBooleanOption((o) =>
+          o.setName("enabled").setDescription("Activer ou désactiver").setRequired(true),
+        ),
     ),
 
   new SlashCommandBuilder()
@@ -172,18 +197,24 @@ export const commands = [
         .setName("announce")
         .setDescription("Annonce embed")
         .addChannelOption((o) =>
-          o.setName("channel").addChannelTypes(ChannelType.GuildText).setRequired(true),
+          o
+            .setName("channel")
+            .setDescription("Salon de publication")
+            .addChannelTypes(ChannelType.GuildText)
+            .setRequired(true),
         )
-        .addStringOption((o) => o.setName("title").setRequired(true))
-        .addStringOption((o) => o.setName("message").setRequired(true)),
+        .addStringOption((o) => o.setName("title").setDescription("Titre").setRequired(true))
+        .addStringOption((o) => o.setName("message").setDescription("Contenu").setRequired(true)),
     )
     .addSubcommand((s) =>
       s
         .setName("shop_add")
         .setDescription("Ajouter un article boutique")
-        .addStringOption((o) => o.setName("name").setRequired(true))
-        .addIntegerOption((o) => o.setName("price").setRequired(true).setMinValue(1))
-        .addRoleOption((o) => o.setName("role").setRequired(false)),
+        .addStringOption((o) => o.setName("name").setDescription("Nom de l'article").setRequired(true))
+        .addIntegerOption((o) =>
+          o.setName("price").setDescription("Prix en coins").setRequired(true).setMinValue(1),
+        )
+        .addRoleOption((o) => o.setName("role").setDescription("Rôle attribué").setRequired(false)),
     ),
 
   new SlashCommandBuilder()
@@ -195,9 +226,15 @@ export const commands = [
         .setName("setup")
         .setDescription("[Admin] Configurer le panneau tickets")
         .addChannelOption((o) =>
-          o.setName("panel").addChannelTypes(ChannelType.GuildText).setRequired(true),
+          o
+            .setName("panel")
+            .setDescription("Salon du panneau tickets")
+            .addChannelTypes(ChannelType.GuildText)
+            .setRequired(true),
         )
-        .addRoleOption((o) => o.setName("support_role").setRequired(false)),
+        .addRoleOption((o) =>
+          o.setName("support_role").setDescription("Rôle support").setRequired(false),
+        ),
     )
     .addSubcommand((s) => s.setName("close").setDescription("[Staff] Fermer ce ticket"))
     .addSubcommand((s) => s.setName("claim").setDescription("[Staff] Prendre ce ticket")),
@@ -208,20 +245,30 @@ export const commands = [
     .addSubcommand((s) =>
       s
         .setName("coinflip")
-        .addIntegerOption((o) => o.setName("bet").setRequired(true).setMinValue(10).setMaxValue(50_000)),
+        .setDescription("Pile ou face")
+        .addIntegerOption((o) =>
+          o.setName("bet").setDescription("Mise en coins").setRequired(true).setMinValue(10).setMaxValue(50_000),
+        ),
     )
     .addSubcommand((s) =>
       s
         .setName("slots")
-        .addIntegerOption((o) => o.setName("bet").setRequired(true).setMinValue(10).setMaxValue(50_000)),
+        .setDescription("Machine à sous")
+        .addIntegerOption((o) =>
+          o.setName("bet").setDescription("Mise en coins").setRequired(true).setMinValue(10).setMaxValue(50_000),
+        ),
     )
     .addSubcommand((s) =>
       s
         .setName("roulette")
-        .addIntegerOption((o) => o.setName("bet").setRequired(true).setMinValue(10).setMaxValue(50_000))
+        .setDescription("Roulette")
+        .addIntegerOption((o) =>
+          o.setName("bet").setDescription("Mise en coins").setRequired(true).setMinValue(10).setMaxValue(50_000),
+        )
         .addStringOption((o) =>
           o
             .setName("color")
+            .setDescription("Couleur")
             .setRequired(true)
             .addChoices(
               { name: "Rouge", value: "red" },
@@ -234,18 +281,20 @@ export const commands = [
   new SlashCommandBuilder()
     .setName("balance")
     .setDescription("Voir ton portefeuille")
-    .addUserOption((o) => o.setName("user").setRequired(false)),
+    .addUserOption((o) => o.setName("user").setDescription("Membre (optionnel)").setRequired(false)),
 
   new SlashCommandBuilder()
     .setName("pay")
     .setDescription("Payer un membre")
-    .addUserOption((o) => o.setName("user").setRequired(true))
-    .addIntegerOption((o) => o.setName("amount").setRequired(true).setMinValue(1)),
+    .addUserOption((o) => o.setName("user").setDescription("Destinataire").setRequired(true))
+    .addIntegerOption((o) =>
+      o.setName("amount").setDescription("Montant").setRequired(true).setMinValue(1),
+    ),
 
   new SlashCommandBuilder()
     .setName("rob")
     .setDescription("Tenter de braquer un membre")
-    .addUserOption((o) => o.setName("user").setRequired(true)),
+    .addUserOption((o) => o.setName("user").setDescription("Victime").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("crime")
@@ -254,12 +303,16 @@ export const commands = [
   new SlashCommandBuilder()
     .setName("deposit")
     .setDescription("Déposer en banque")
-    .addIntegerOption((o) => o.setName("amount").setRequired(true).setMinValue(1)),
+    .addIntegerOption((o) =>
+      o.setName("amount").setDescription("Montant").setRequired(true).setMinValue(1),
+    ),
 
   new SlashCommandBuilder()
     .setName("withdraw")
     .setDescription("Retirer de la banque")
-    .addIntegerOption((o) => o.setName("amount").setRequired(true).setMinValue(1)),
+    .addIntegerOption((o) =>
+      o.setName("amount").setDescription("Montant").setRequired(true).setMinValue(1),
+    ),
 
   new SlashCommandBuilder()
     .setName("leaderboard")
@@ -273,13 +326,15 @@ export const commands = [
       s
         .setName("buy")
         .setDescription("Acheter")
-        .addStringOption((o) => o.setName("item_id").setRequired(true)),
+        .addStringOption((o) =>
+          o.setName("item_id").setDescription("ID de l'article").setRequired(true),
+        ),
     ),
 
   new SlashCommandBuilder()
     .setName("suggest")
     .setDescription("Envoyer une suggestion")
-    .addStringOption((o) => o.setName("idea").setRequired(true)),
+    .addStringOption((o) => o.setName("idea").setDescription("Votre idée").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("brain")
@@ -287,10 +342,10 @@ export const commands = [
     .addSubcommand((s) => s.setName("status").setDescription("État du service Brain")),
 
   modCmd("clearwarn", "Effacer les warns d'un membre").addUserOption((o) =>
-    o.setName("user").setRequired(true),
+    o.setName("user").setDescription("Membre").setRequired(true),
   ),
 
   modCmd("nickname", "Changer le pseudo")
-    .addUserOption((o) => o.setName("user").setRequired(true))
-    .addStringOption((o) => o.setName("name").setRequired(true)),
+    .addUserOption((o) => o.setName("user").setDescription("Membre").setRequired(true))
+    .addStringOption((o) => o.setName("name").setDescription("Nouveau pseudo").setRequired(true)),
 ];
