@@ -5,6 +5,7 @@
   "description": "Mr-X Sentinel — plateforme Discord unifiée (sécurité, mod, logs, économie, XP, IA)",
   "scripts": {
     "build": "pnpm -r run build",
+    "build:ci": "pnpm --filter @sentinel/shared build && pnpm --filter @sentinel/database build && pnpm --filter @sentinel/ai build && pnpm --filter @sentinel/core build && pnpm --filter @sentinel/bot build && pnpm --filter @sentinel/dashboard build",
     "dev": "pnpm run docker:up && concurrently -n bot,dash,worker -c blue,green,yellow \"pnpm --filter @sentinel/bot dev\" \"pnpm --filter @sentinel/dashboard dev\" \"pnpm --filter @sentinel/bot dev:worker\"",
     "dev:bot": "pnpm --filter @sentinel/bot dev",
     "dev:dashboard": "pnpm --filter @sentinel/dashboard dev",

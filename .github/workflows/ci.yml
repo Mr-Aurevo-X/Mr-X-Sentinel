@@ -6,19 +6,29 @@ on:
   pull_request:
     branches: [main, master]
 
+env:
+  # Stubs for Next.js / NextAuth build (no secrets required)
+  NEXTAUTH_SECRET: ci-build-placeholder-secret-32chars-min
+  NEXTAUTH_URL: http://localhost:3000
+  DISCORD_CLIENT_ID: "1507473175498457129"
+  DISCORD_CLIENT_SECRET: ci-build-not-used
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+        # Uses packageManager field from package.json (pnpm@9.15.0)
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
-      # Recursive build respects workspace dependency order (dist/ required for imports)
-      - run: pnpm -r run build
+
+      - run: pnpm run build:ci
