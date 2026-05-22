@@ -3,7 +3,7 @@ import "./load-env.js";
 export const config = {
   token: process.env.DISCORD_TOKEN ?? "",
   clientId: process.env.DISCORD_CLIENT_ID ?? "",
-  shardCount: process.env.SHARD_COUNT ? parseInt(process.env.SHARD_COUNT, 10) : undefined,
+  shardCount: process.env.SHARD_COUNT ? parseInt(process.env.SHARD_COUNT, 10) : undefined, // omis si vide (voir load-env.ts)
 };
 
 export function validateConfig(): void {
