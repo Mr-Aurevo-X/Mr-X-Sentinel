@@ -1,0 +1,33 @@
+{
+  "name": "mr-x-sentinel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mr-X Sentinel — plateforme Discord unifiée (sécurité, mod, logs, économie, XP, IA)",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm run docker:up && concurrently -n bot,dash,worker -c blue,green,yellow \"pnpm --filter @sentinel/bot dev\" \"pnpm --filter @sentinel/dashboard dev\" \"pnpm --filter @sentinel/bot dev:worker\"",
+    "dev:bot": "pnpm --filter @sentinel/bot dev",
+    "dev:dashboard": "pnpm --filter @sentinel/dashboard dev",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "db:generate": "pnpm --filter @sentinel/database generate",
+    "db:migrate": "pnpm --filter @sentinel/database migrate",
+    "db:push": "pnpm --filter @sentinel/database push",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm --filter @sentinel/core test",
+    "migrate:legacy": "tsx tools/migrate-legacy-sqlite.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

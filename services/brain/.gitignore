@@ -1,0 +1,18 @@
+# Secrets & local config
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Runtime / local training DB
+brain.db
+bot_settings.db
+
+# IDE
+.idea/
+.vscode/
+*.swp

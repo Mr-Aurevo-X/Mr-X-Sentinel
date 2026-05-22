@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WhitelistLevel {
+  EXTRA_OWNER
+  TRUSTED
+}
+
+enum SecuritySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ModCaseType {
+  WARN
+  MUTE
+  KICK
+  BAN
+  SOFTBAN
+  UNBAN
+  NOTE
+}
+
+model Guild {
+  id                String   @id
+  locale            String   @default("fr")
+  lockdown          Boolean  @default(false)
+  raidMode          Boolean  @default(false)
+  modLogChannelId   String?
+  alertWebhookUrl   String?
+  quarantineRoleId  String?
+  config            Json     @default("{}")
+  setupComplete     Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  whitelist    WhitelistEntry[]
+  cases        ModCase[]
+  snapshots    Snapshot[]
+  events       SecurityEvent[]
+  members      GuildMemberRecord[]
+  logChannels  GuildLogChannel[]
+  wallets      UserWallet[]
+  xpRecords    UserXp[]
+  shopItems    ShopItem[]
+  aiThreads    AiConversation[]
+}
+
+model GuildLogChannel {
+  id        String   @id @default(cuid())
+  guildId   String
+  logType   String
+  channelId String
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, logType])
+  @@index([guildId])
+}
+
+model WhitelistEntry {
+  id        String         @id @default(cuid())
+  guildId   String
+  userId    String
+  level     WhitelistLevel
+  addedBy   String
+  createdAt DateTime       @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, userId])
+  @@index([guildId])
+}
+
+model GuildMemberRecord {
+  id          String   @id @default(cuid())
+  guildId     String
+  userId      String
+  warnCount   Int      @default(0)
+  threatScore Int      @default(0)
+  notes       String?
+  updatedAt   DateTime @updatedAt
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, userId])
+}
+
+model ModCase {
+  id          String      @id @default(cuid())
+  guildId     String
+  caseNumber  Int
+  type        ModCaseType
+  targetId    String
+  moderatorId String
+  reason      String
+  proof       String?
+  durationMs  Int?
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, caseNumber])
+  @@index([guildId, targetId])
+}
+
+model Snapshot {
+  id        String   @id @default(cuid())
+  guildId   String
+  label     String   @default("auto")
+  payload   Json
+  sizeBytes Int      @default(0)
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, createdAt(sort: Desc)])
+}
+
+model SecurityEvent {
+  id        String           @id @default(cuid())
+  guildId   String
+  type      String
+  actorId   String?
+  targetId  String?
+  severity  SecuritySeverity
+  metadata  Json             @default("{}")
+  resolved  Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, createdAt(sort: Desc)])
+  @@index([guildId, severity])
+}
+
+model DashboardAccount {
+  id           String   @id @default(cuid())
+  discordId    String   @unique
+  username     String
+  avatar       String?
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model UserWallet {
+  id         String    @id @default(cuid())
+  guildId    String
+  userId     String
+  cash       Int       @default(0)
+  bank       Int       @default(0)
+  lastDaily  DateTime?
+  lastWork   DateTime?
+  lastCrime  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, userId])
+}
+
+model UserXp {
+  id        String   @id @default(cuid())
+  guildId   String
+  userId    String
+  xp        Int      @default(0)
+  level     Int      @default(0)
+  streak    Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, userId])
+}
+
+model ShopItem {
+  id        String   @id @default(cuid())
+  guildId   String
+  name      String
+  price     Int
+  roleId    String?
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId])
+}
+
+model AiConversation {
+  id        String      @id @default(cuid())
+  guildId   String?
+  userId    String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  messages  AiMessage[]
+
+  guild Guild? @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AiMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  createdAt      DateTime @default(now())
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}

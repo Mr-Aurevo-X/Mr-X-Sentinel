@@ -1,0 +1,31 @@
+{
+  "key": "minimal",
+  "label": "Minimal",
+  "description": "Serveur minimal — infos, général, staff",
+  "roles": [
+    ["Founder", "founder"],
+    ["Admin", "admin"],
+    ["Moderator", "moderator"],
+    ["Member", "member"]
+  ],
+  "categories": [
+    {
+      "name": "Informations",
+      "text": ["welcome", "rules", "announcements"],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "Général",
+      "text": ["general", "bot-commands"],
+      "voice": ["General VC"],
+      "private_for": []
+    },
+    {
+      "name": "Staff",
+      "text": ["staff-chat", "staff-logs"],
+      "voice": ["Staff VC"],
+      "private_for": ["Founder", "Admin", "Moderator"]
+    }
+  ]
+}

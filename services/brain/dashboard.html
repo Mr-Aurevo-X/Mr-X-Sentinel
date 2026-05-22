@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MrXBrain — Dashboard</title>
+<style>
+  :root {
+    --bg:      #0e0f13;
+    --surface: #1a1c23;
+    --card:    #22252f;
+    --border:  #2e3140;
+    --accent:  #5865f2;
+    --green:   #3ba55d;
+    --red:     #ed4245;
+    --yellow:  #faa81a;
+    --cyan:    #00b0f4;
+    --text:    #dcddde;
+    --muted:   #72767d;
+    --radius:  10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header h1 { font-size: 1.25rem; font-weight: 700; }
+  header h1 span { color: var(--accent); }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--muted); margin-left: auto;
+    transition: background .3s;
+  }
+  .status-dot.online  { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+  .status-dot.offline { background: var(--red); }
+  .status-label { font-size: .8rem; color: var(--muted); }
+
+  /* ── Layout ── */
+  main { max-width: 1280px; margin: 32px auto; padding: 0 24px; display: flex; flex-direction: column; gap: 24px; }
+
+  /* ── Viz réseau neuronal (complet) ── */
+  .nn-card { overflow: hidden; }
+  .nn-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+  @media (max-width: 1000px) { .nn-layout { grid-template-columns: 1fr; } }
+  .nn-wrap {
+    position: relative;
+    background: radial-gradient(ellipse 70% 55% at 45% 45%, #252a45 0%, #14161c 65%);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    min-height: 400px;
+    overflow-x: auto;
+  }
+  .nn-wrap svg { width: 100%; min-width: 1100px; height: 400px; display: block; }
+  .nn-specs {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: .72rem;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .nn-specs h3 { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 12px 0 8px; }
+  .nn-specs h3:first-child { margin-top: 0; }
+  .nn-spec-row { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid #2a2d38; color: var(--text); }
+  .nn-spec-row span:last-child { color: var(--cyan); font-weight: 600; text-align: right; }
+  .nn-spec-row.dim span:last-child { color: var(--muted); font-weight: 400; }
+  .nn-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  @media (max-width: 700px) { .nn-panels { grid-template-columns: 1fr; } }
+  .nn-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .nn-panel h3 { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
+  .nn-tokens { display: flex; flex-wrap: wrap; gap: 5px; min-height: 36px; }
+  .nn-token {
+    font-size: .68rem; padding: 3px 8px; border-radius: 4px;
+    background: #2b2f3a; border: 1px solid var(--border); color: var(--text);
+  }
+  .nn-token.special { border-color: var(--accent); color: var(--accent); }
+  .nn-token.pad { opacity: .35; font-style: italic; }
+  .nn-head-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .nn-head-item {
+    padding: 8px; border-radius: 6px; background: #1e2129;
+    border-left: 3px solid var(--border);
+  }
+  .nn-head-item.hot { background: #252836; }
+  .nn-head-item .hname { font-size: .7rem; font-weight: 700; }
+  .nn-head-item .hval { font-size: 1.1rem; font-weight: 800; margin-top: 2px; }
+  .nn-head-item .hsub { font-size: .65rem; color: var(--muted); margin-top: 2px; }
+  .nn-layer-box {
+    fill: none;
+    stroke: #5865f244;
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+    rx: 6;
+  }
+  .nn-layer-title { font-size: 9px; font-weight: 700; fill: #b9bbbe; text-anchor: middle; }
+  .nn-layer-sub { font-size: 7px; fill: #72767d; text-anchor: middle; }
+  .nn-layer-label {
+    font-size: .65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    fill: var(--muted);
+  }
+  .nn-link {
+    stroke: var(--border);
+    stroke-width: 1;
+    opacity: .35;
+    transition: opacity .3s, stroke .3s;
+  }
+  .nn-link.lit { stroke: var(--accent); opacity: .55; }
+  .nn-link.pulse-line { stroke: var(--accent); opacity: .9; stroke-width: 1.5; }
+  .nn-node circle.core {
+    fill: var(--surface);
+    stroke: var(--border);
+    stroke-width: 1.5;
+    transition: r .35s, stroke .35s, filter .35s;
+  }
+  .nn-node.firing circle.core {
+    stroke: var(--accent);
+    filter: drop-shadow(0 0 6px var(--accent));
+  }
+  .nn-node.active circle.core {
+    stroke: var(--cyan);
+    filter: drop-shadow(0 0 8px var(--cyan));
+  }
+  .nn-node.out-hot circle.core { stroke-width: 2; }
+  .nn-pulse {
+    fill: var(--accent);
+    filter: drop-shadow(0 0 4px var(--accent));
+    opacity: 0;
+  }
+  .nn-pulse.run { animation: nn-travel .55s ease-in forwards; }
+  @keyframes nn-travel {
+    0%   { opacity: 0; offset-distance: 0%; }
+    15%  { opacity: 1; }
+    85%  { opacity: 1; }
+    100% { opacity: 0; offset-distance: 100%; }
+  }
+  .nn-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-top: 12px;
+    font-size: .72rem;
+    color: var(--muted);
+  }
+  .nn-legend span { display: flex; align-items: center; gap: 6px; }
+  .nn-legend i {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block;
+  }
+  .nn-status {
+    font-size: .75rem;
+    color: var(--muted);
+    margin-top: 8px;
+    min-height: 1.2em;
+  }
+  .nn-status.busy { color: var(--cyan); }
+  .nn-wrap.idle [data-layer="lstm1"] circle.core,
+  .nn-wrap.idle [data-layer="lstm2"] circle.core,
+  .nn-wrap.idle [data-layer="feat"] circle.core {
+    animation: nn-breathe 2.8s ease-in-out infinite;
+  }
+  @keyframes nn-breathe {
+    0%, 100% { filter: drop-shadow(0 0 2px #00b0f433); }
+    50%      { filter: drop-shadow(0 0 7px #00b0f4aa); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nn-wrap.idle [data-layer="lstm"] circle.core { animation: none; }
+    .nn-pulse.run { animation: none; }
+    .nn-node.firing circle.core { filter: none; }
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .card h2 { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 16px; }
+
+  /* ── Auth row ── */
+  .auth-row { display: flex; gap: 10px; align-items: center; }
+  .auth-row input {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); padding: 8px 12px; font-size: .9rem;
+    outline: none;
+  }
+  .auth-row input:focus { border-color: var(--accent); }
+  .badge {
+    font-size: .75rem; padding: 3px 10px; border-radius: 20px;
+    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+  }
+  .badge.ok { background: #1e3a2a; border-color: var(--green); color: var(--green); }
+
+  /* ── Analyser ── */
+  textarea {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); padding: 12px; font-size: .95rem;
+    resize: vertical; min-height: 90px; outline: none; font-family: inherit;
+    transition: border-color .2s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  .hint { font-size: .75rem; color: var(--muted); margin-top: 6px; }
+
+  /* ── Résultats ── */
+  .results { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+  .result-block { background: var(--surface); border-radius: 8px; padding: 16px; }
+  .result-block .label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 10px; }
+  .result-block .value { font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; }
+  .bar-track { background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 4px; transition: width .5s cubic-bezier(.4,0,.2,1), background .3s; }
+
+  .verdict { display: inline-block; font-size: .75rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; margin-top: 8px; }
+  .verdict.safe    { background: #1e3a2a; color: var(--green); }
+  .verdict.danger  { background: #3a1e1e; color: var(--red); }
+  .verdict.warning { background: #3a2e1e; color: var(--yellow); }
+
+  /* Eco block full width */
+  .eco-block {
+    grid-column: span 2;
+    background: var(--surface); border-radius: 8px; padding: 16px;
+  }
+  .eco-block .label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 12px; }
+  .eco-bars { display: flex; gap: 12px; }
+  .eco-item { flex: 1; }
+  .eco-item .eco-label { font-size: .75rem; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .eco-active .eco-label { color: var(--text); font-weight: 700; }
+
+  /* ── Stats ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .stat-item { background: var(--surface); border-radius: 8px; padding: 16px; text-align: center; }
+  .stat-item .sval { font-size: 2rem; font-weight: 800; }
+  .stat-item .slab { font-size: .7rem; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .06em; }
+
+  /* ── Spinner ── */
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Placeholder ── */
+  .placeholder { color: var(--muted); font-size: .9rem; text-align: center; padding: 24px 0; }
+
+  @media (max-width: 600px) {
+    .results { grid-template-columns: 1fr; }
+    .eco-block { grid-column: span 1; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <circle cx="14" cy="14" r="14" fill="#5865f2"/>
+    <text x="14" y="19" text-anchor="middle" font-size="14" fill="white">🧠</text>
+  </svg>
+  <h1>Mr<span>X</span>Brain</h1>
+  <span class="status-label" id="statusLabel">Connexion...</span>
+  <div class="status-dot" id="statusDot"></div>
+</header>
+
+<main>
+
+  <!-- Auth -->
+  <div class="card">
+    <h2>Clé API</h2>
+    <div class="auth-row">
+      <input type="password" id="apiKey" placeholder="BRAIN_API_KEY" value="changeme">
+      <span class="badge" id="authBadge">—</span>
+    </div>
+  </div>
+
+  <!-- Viz réseau complet -->
+  <div class="card nn-card">
+    <h2>Architecture MrXBrain — visualisation complète</h2>
+    <div class="nn-layout">
+      <div class="nn-wrap idle" id="nnWrap">
+        <svg id="brainViz" viewBox="0 0 1180 400" aria-label="Réseau neuronal MrXBrain"></svg>
+      </div>
+      <aside class="nn-specs" id="nnSpecs">
+        <h3>Modèle PyTorch</h3>
+        <div class="nn-spec-row"><span>Paramètres (~)</span><span id="specParams">1,12 M</span></div>
+        <div class="nn-spec-row"><span>Périphérique</span><span id="specDevice">—</span></div>
+        <div class="nn-spec-row"><span>Exemples custom</span><span id="specCustom">—</span></div>
+        <h3>Entrée texte</h3>
+        <div class="nn-spec-row"><span>Vocabulaire</span><span>5 000 + PAD/UNK</span></div>
+        <div class="nn-spec-row"><span>Longueur max</span><span>60 tokens</span></div>
+        <div class="nn-spec-row dim"><span>Spéciaux</span><span>__URL__, __INVITE__…</span></div>
+        <h3>Encodeur partagé</h3>
+        <div class="nn-spec-row"><span>Embedding</span><span>64 dimensions</span></div>
+        <div class="nn-spec-row"><span>BiLSTM</span><span>2 couches × 128</span></div>
+        <div class="nn-spec-row"><span>Features concat</span><span>256 (128×2)</span></div>
+        <div class="nn-spec-row"><span>Dropout</span><span>0,4 / 0,3</span></div>
+        <h3>Têtes (multi-tâches)</h3>
+        <div class="nn-spec-row"><span>Spam</span><span>BCE → σ binaire</span></div>
+        <div class="nn-spec-row"><span>Toxicité</span><span>BCE → σ binaire</span></div>
+        <div class="nn-spec-row"><span>XP</span><span>MSE → σ [0–1]</span></div>
+        <div class="nn-spec-row"><span>Économie</span><span>CE → 3 classes</span></div>
+      </aside>
+    </div>
+    <p class="nn-status" id="nnStatus">En attente d'un message…</p>
+    <div class="nn-panels">
+      <div class="nn-panel">
+        <h3>Tokenisation en direct (même règles que le modèle)</h3>
+        <div class="nn-tokens" id="nnTokenChips"><span class="hint">Tape un message ci-dessous</span></div>
+      </div>
+      <div class="nn-panel">
+        <h3>Sorties des 4 têtes</h3>
+        <div class="nn-head-grid" id="nnHeadGrid">
+          <div class="nn-head-item" id="headSpam" style="border-color:var(--red)"><div class="hname">Spam Head</div><div class="hval" id="headSpamV">—</div><div class="hsub">Linear 256→64→1 + Sigmoid</div></div>
+          <div class="nn-head-item" id="headTox" style="border-color:var(--yellow)"><div class="hname">Toxicity Head</div><div class="hval" id="headToxV">—</div><div class="hsub">Linear 256→64→1 + Sigmoid</div></div>
+          <div class="nn-head-item" id="headXp" style="border-color:var(--cyan)"><div class="hname">XP Head</div><div class="hval" id="headXpV">—</div><div class="hsub">Linear 256→64→1 + Sigmoid</div></div>
+          <div class="nn-head-item" id="headEco" style="border-color:var(--green)"><div class="hname">Economy Head</div><div class="hval" id="headEcoV">—</div><div class="hsub">Linear 256→64→3 + Softmax</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="nn-legend" style="margin-top:12px">
+      <span><i style="background:var(--muted)"></i> Texte → Tokens → IDs</span>
+      <span><i style="background:var(--accent)"></i> Embedding 64D</span>
+      <span><i style="background:var(--cyan)"></i> BiLSTM L1→L2 → 256D</span>
+      <span><i style="background:var(--red)"></i> Têtes parallèles</span>
+      <span><i style="background:#3ba55d"></i> Chaque colonne = groupe de neurones (échantillon visuel)</span>
+    </div>
+    <p class="hint" style="margin-top:6px">Représentation dense de l'architecture réelle (MrXBrain BiLSTM). Les connexions illustrent le flux ; le modèle contient des milliers de poids matriciels non dessinés un par un.</p>
+  </div>
+
+  <!-- Analyser -->
+  <div class="card">
+    <h2>Analyser un message</h2>
+    <textarea id="msgInput" placeholder="Écris un message Discord..."></textarea>
+    <p class="hint">Analyse automatique après 400 ms de pause.</p>
+
+    <div id="resultsArea">
+      <p class="placeholder" id="placeholderTxt">Commence à écrire pour voir les prédictions.</p>
+      <div class="results" id="resultsGrid" style="display:none">
+
+        <!-- Spam -->
+        <div class="result-block">
+          <div class="label">Spam</div>
+          <div class="value" id="spamVal">—</div>
+          <div class="bar-track"><div class="bar-fill" id="spamBar" style="width:0;background:var(--accent)"></div></div>
+          <span class="verdict" id="spamVerdict"></span>
+        </div>
+
+        <!-- Toxicité -->
+        <div class="result-block">
+          <div class="label">Toxicité</div>
+          <div class="value" id="toxVal">—</div>
+          <div class="bar-track"><div class="bar-fill" id="toxBar" style="width:0;background:var(--accent)"></div></div>
+          <span class="verdict" id="toxVerdict"></span>
+        </div>
+
+        <!-- XP -->
+        <div class="result-block">
+          <div class="label">Valeur XP</div>
+          <div class="value" id="xpVal">—</div>
+          <div class="bar-track"><div class="bar-fill" id="xpBar" style="width:0;background:var(--cyan)"></div></div>
+          <span class="verdict" id="xpVerdict"></span>
+        </div>
+
+        <!-- Placeholder 4th -->
+        <div class="result-block" id="extraBlock" style="display:flex;align-items:center;justify-content:center">
+          <span class="placeholder" id="extraTxt"></span>
+        </div>
+
+        <!-- Économie -->
+        <div class="eco-block">
+          <div class="label">Signal économique</div>
+          <div class="eco-bars" id="ecoBars">
+            <div class="eco-item" id="eco0">
+              <div class="eco-label"><span>⚪ Neutre</span><span id="ecoP0">—</span></div>
+              <div class="bar-track"><div class="bar-fill" id="ecoBar0" style="width:0;background:var(--muted)"></div></div>
+            </div>
+            <div class="eco-item" id="eco1">
+              <div class="eco-label"><span>🌾 Farming</span><span id="ecoP1">—</span></div>
+              <div class="bar-track"><div class="bar-fill" id="ecoBar1" style="width:0;background:var(--green)"></div></div>
+            </div>
+            <div class="eco-item" id="eco2">
+              <div class="eco-label"><span>💸 Dépense</span><span id="ecoP2">—</span></div>
+              <div class="bar-track"><div class="bar-fill" id="ecoBar2" style="width:0;background:var(--yellow)"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /resultsGrid -->
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="card">
+    <h2>Statistiques <span id="refreshSpinner" class="spinner" style="display:none"></span></h2>
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-item"><div class="sval" id="sTot">—</div><div class="slab">Exemples custom</div></div>
+      <div class="stat-item"><div class="sval" id="sSpam">—</div><div class="slab">Spam</div></div>
+      <div class="stat-item"><div class="sval" id="sTox">—</div><div class="slab">Toxiques</div></div>
+      <div class="stat-item"><div class="sval" id="sFarm">—</div><div class="slab">Farming</div></div>
+      <div class="stat-item"><div class="sval" id="sDep">—</div><div class="slab">Dépense</div></div>
+      <div class="stat-item"><div class="sval" id="sNeu">—</div><div class="slab">Neutre</div></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const BASE = window.location.origin;
+  let debounceTimer = null;
+  let nnAnimToken = 0;
+
+  function key() { return document.getElementById('apiKey').value.trim(); }
+
+  // ── Viz réseau neuronal (architecture complète) ─────────────────────────
+
+  const ARCH = { vocab: 5000, maxLen: 60, embed: 64, hidden: 128, feat: 256, lstmLayers: 2 };
+
+  const NN_LAYERS = [
+    { key: 'text',  label: 'Texte',      sub: 'message Discord',     n: 1,  x: 55,  r: 14 },
+    { key: 'tok',   label: 'Tokens',     sub: 'regex + split',       n: 10, x: 145, r: 5 },
+    { key: 'ids',   label: 'IDs',        sub: 'séquence [60]',       n: 8,  x: 235, r: 5 },
+    { key: 'emb',   label: 'Embedding',  sub: '64D lookup',          n: 14, x: 325, r: 5 },
+    { key: 'lstm1', label: 'LSTM L1',    sub: '128 → 128 (bi)',      n: 12, x: 430, r: 5 },
+    { key: 'lstm2', label: 'LSTM L2',    sub: 'dropout 0.3',         n: 12, x: 535, r: 5 },
+    { key: 'feat',  label: 'Features',   sub: 'concat 256',          n: 12, x: 640, r: 6 },
+    { key: 'dspam', label: 'Spam head',  sub: '256→64→1',           n: 6,  x: 755, r: 5, color: '#ed4245' },
+    { key: 'dtox',  label: 'Tox head',   sub: '256→64→1',           n: 6,  x: 835, r: 5, color: '#faa81a' },
+    { key: 'dxp',   label: 'XP head',    sub: '256→64→1',           n: 6,  x: 915, r: 5, color: '#00b0f4' },
+    { key: 'deco',  label: 'Éco head',   sub: '256→64→3',           n: 6,  x: 995, r: 5, color: '#3ba55d' },
+    { key: 'out',   label: 'Sorties',    sub: '4 prédictions',       n: 7,  x: 1095, r: 7,
+      outs: [
+        { id: 'spam', label: 'σ spam', color: '#ed4245' },
+        { id: 'tox',  label: 'σ tox',  color: '#faa81a' },
+        { id: 'xp',   label: 'σ xp',   color: '#00b0f4' },
+        { id: 'eco0', label: 'N',      color: '#72767d' },
+        { id: 'eco1', label: 'F',      color: '#3ba55d' },
+        { id: 'eco2', label: 'D',      color: '#faa81a' },
+        { id: 'eco',  label: 'argmax', color: '#3ba55d' },
+      ],
+    },
+  ];
+
+  const NN_STEPS = ['text','tok','ids','emb','lstm1','lstm2','feat','dspam','dtox','dxp','deco','out'];
+  const nnState = { nodes: [], links: [], paths: [], layerBoxes: [] };
+
+  function tokenizeClient(text) {
+    let t = text.toLowerCase();
+    t = t.replace(/https?:\/\/\S+/g, ' __URL__ ');
+    t = t.replace(/discord\.gg\/\S+/g, ' __INVITE__ ');
+    t = t.replace(/@everyone|@here/g, ' __MENTION_ALL__ ');
+    t = t.replace(/@\w+/g, ' __MENTION__ ');
+    t = t.replace(/[^\w\s]/g, ' ');
+    return t.split(/\s+/).filter(Boolean).slice(0, ARCH.maxLen);
+  }
+
+  function renderTokenChips(text) {
+    const box = document.getElementById('nnTokenChips');
+    const toks = tokenizeClient(text || '');
+    if (!toks.length) {
+      box.innerHTML = '<span class="hint">Tape un message ci-dessous</span>';
+      return;
+    }
+    const special = /^__.*__$/;
+    box.innerHTML = toks.map(t =>
+      `<span class="nn-token${special.test(t) ? ' special' : ''}">${t}</span>`
+    ).join('') + (toks.length >= ARCH.maxLen ? '<span class="nn-token pad">…+pad</span>' : '');
+    updateTokNodes(toks);
+  }
+
+  function updateTokNodes(toks) {
+    const nodes = nnState.nodes.filter(n => n.layer === 'tok');
+    nodes.forEach((n, i) => {
+      const label = toks[i] || '';
+      let t = n.el.querySelector('.tok-label');
+      if (!t) {
+        t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t.classList.add('tok-label');
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('font-size', '6');
+        t.setAttribute('fill', '#b9bbbe');
+        n.el.appendChild(t);
+      }
+      t.setAttribute('x', n.x);
+      t.setAttribute('y', n.y + 3);
+      t.textContent = label.length > 8 ? label.slice(0, 7) + '…' : label;
+      n.el.classList.toggle('has-token', !!toks[i]);
+    });
+  }
+
+  function nnY(i, total, top = 36, h = 300) {
+    const span = h / (total + 1);
+    return top + span * (i + 1);
+  }
+
+  function shouldLink(a, b) {
+    const di = Math.abs(a.i - b.i);
+    return di <= 2 || (a.i + b.i) % 3 === 0;
+  }
+
+  function buildBrainViz() {
+    const svg = document.getElementById('brainViz');
+    svg.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    const xlink = 'http://www.w3.org/1999/xlink';
+
+    const defs = document.createElementNS(ns, 'defs');
+    defs.innerHTML = `<filter id="nnGlow"><feGaussianBlur stdDeviation="2.5"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+    svg.appendChild(defs);
+
+    const gBoxes = document.createElementNS(ns, 'g');
+    const gLinks = document.createElementNS(ns, 'g');
+    const gPaths = document.createElementNS(ns, 'g');
+    const gNodes = document.createElementNS(ns, 'g');
+    const gLabels = document.createElementNS(ns, 'g');
+
+    nnState.nodes = [];
+    nnState.links = [];
+    nnState.paths = [];
+
+    NN_LAYERS.forEach((layer, li) => {
+      const ys = [];
+      for (let i = 0; i < layer.n; i++) ys.push(nnY(i, layer.n));
+      const pad = 18;
+      const box = document.createElementNS(ns, 'rect');
+      box.classList.add('nn-layer-box');
+      box.setAttribute('x', layer.x - pad);
+      box.setAttribute('y', Math.min(...ys) - 16);
+      box.setAttribute('width', pad * 2);
+      box.setAttribute('height', Math.max(...ys) - Math.min(...ys) + 32);
+      gBoxes.appendChild(box);
+
+      const title = document.createElementNS(ns, 'text');
+      title.setAttribute('x', layer.x);
+      title.setAttribute('y', Math.min(...ys) - 22);
+      title.classList.add('nn-layer-title');
+      title.textContent = layer.label;
+      gLabels.appendChild(title);
+
+      const sub = document.createElementNS(ns, 'text');
+      sub.setAttribute('x', layer.x);
+      sub.setAttribute('y', Math.min(...ys) - 12);
+      sub.classList.add('nn-layer-sub');
+      sub.textContent = layer.sub || '';
+      gLabels.appendChild(sub);
+
+      for (let i = 0; i < layer.n; i++) {
+        const g = document.createElementNS(ns, 'g');
+        g.classList.add('nn-node');
+        g.dataset.layer = layer.key;
+        const cy = ys[i];
+        const r = layer.r || 6;
+        const circle = document.createElementNS(ns, 'circle');
+        circle.classList.add('core');
+        circle.setAttribute('cx', layer.x);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', r);
+        if (layer.color) {
+          circle.setAttribute('stroke', layer.color);
+          circle.setAttribute('fill', '#1a1c23');
+        }
+        if (layer.key === 'out' && layer.outs) {
+          circle.setAttribute('stroke', layer.outs[i].color);
+          const t = document.createElementNS(ns, 'text');
+          t.setAttribute('x', layer.x);
+          t.setAttribute('y', cy + (r + 10));
+          t.setAttribute('text-anchor', 'middle');
+          t.setAttribute('font-size', '7');
+          t.setAttribute('fill', layer.outs[i].color);
+          t.textContent = layer.outs[i].label;
+          g.appendChild(t);
+        }
+        g.appendChild(circle);
+        gNodes.appendChild(g);
+        nnState.nodes.push({ el: g, circle, layer: layer.key, x: layer.x, y: cy, li, i, r });
+      }
+    });
+
+    function connectLayers(keyA, keyB, sparse = true) {
+      const aNodes = nnState.nodes.filter(n => n.layer === keyA);
+      const bNodes = nnState.nodes.filter(n => n.layer === keyB);
+      aNodes.forEach(a => {
+        bNodes.forEach(b => {
+          if (sparse && !shouldLink(a, b)) return;
+          const line = document.createElementNS(ns, 'line');
+          line.classList.add('nn-link');
+          line.setAttribute('x1', a.x);
+          line.setAttribute('y1', a.y);
+          line.setAttribute('x2', b.x);
+          line.setAttribute('y2', b.y);
+          gLinks.appendChild(line);
+          nnState.links.push({ el: line, a, b });
+          const mx = (a.x + b.x) / 2;
+          const d = `M ${a.x} ${a.y} Q ${mx} ${(a.y + b.y) / 2} ${b.x} ${b.y}`;
+          const path = document.createElementNS(ns, 'path');
+          path.setAttribute('d', d);
+          path.setAttribute('fill', 'none');
+          path.id = `nnpath-${nnState.paths.length}`;
+          gPaths.appendChild(path);
+          nnState.paths.push({ el: path, d, a, b });
+        });
+      });
+    }
+
+    const chain = ['text', 'tok', 'ids', 'emb', 'lstm1', 'lstm2', 'feat'];
+    for (let i = 0; i < chain.length - 1; i++) connectLayers(chain[i], chain[i + 1], true);
+    ['dspam', 'dtox', 'dxp', 'deco'].forEach(h => connectLayers('feat', h, true));
+    connectLayers('dspam', 'out', true);
+    connectLayers('dtox', 'out', true);
+    connectLayers('dxp', 'out', true);
+    connectLayers('deco', 'out', true);
+
+    svg.appendChild(gBoxes);
+    svg.appendChild(gLinks);
+    svg.appendChild(gPaths);
+    svg.appendChild(gNodes);
+    svg.appendChild(gLabels);
+  }
+
+  function nnSetStatus(msg, busy = false) {
+    const el = document.getElementById('nnStatus');
+    el.textContent = msg;
+    el.classList.toggle('busy', busy);
+    document.getElementById('nnWrap').classList.toggle('idle', !busy);
+  }
+
+  function nnClearFiring() {
+    nnState.nodes.forEach(n => {
+      n.el.classList.remove('firing', 'active', 'out-hot');
+      n.circle.style.filter = '';
+      n.circle.setAttribute('r', n.r || 6);
+    });
+    nnState.links.forEach(l => l.el.classList.remove('lit', 'pulse-line'));
+    document.querySelectorAll('.nn-pulse').forEach(p => p.remove());
+  }
+
+  function nnFireLayer(layerKey) {
+    nnState.nodes.filter(n => n.layer === layerKey).forEach(n => n.el.classList.add('firing'));
+  }
+
+  function nnPulseLinks(layerKey, count = 14) {
+    const pool = nnState.paths.filter(p => p.a.layer === layerKey);
+    const picks = pool.sort(() => Math.random() - 0.5).slice(0, Math.min(count, pool.length));
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.getElementById('brainViz');
+    const xlink = 'http://www.w3.org/1999/xlink';
+
+    picks.forEach((p, idx) => {
+      const dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('r', '4');
+      dot.classList.add('nn-pulse');
+      dot.setAttribute('fill', '#5865f2');
+      dot.setAttribute('opacity', '0.95');
+
+      const motion = document.createElementNS(ns, 'animateMotion');
+      motion.setAttribute('dur', '0.5s');
+      motion.setAttribute('begin', `${idx * 0.04}s`);
+      motion.setAttribute('fill', 'freeze');
+      const mpath = document.createElementNS(ns, 'mpath');
+      mpath.setAttributeNS(xlink, 'href', `#${p.el.id}`);
+      motion.appendChild(mpath);
+      dot.appendChild(motion);
+
+      svg.appendChild(dot);
+      setTimeout(() => dot.remove(), 650 + idx * 40);
+
+      const link = nnState.links.find(l => l.a === p.a && l.b === p.b);
+      if (link) {
+        link.el.classList.add('pulse-line');
+        setTimeout(() => link.el.classList.remove('pulse-line'), 700);
+      }
+    });
+  }
+
+  async function nnAnimateForward() {
+    const token = ++nnAnimToken;
+    nnClearFiring();
+    nnSetStatus('① Texte → ② Tokens → ③ Embedding → ④ BiLSTM ×2 → ⑤ Têtes parallèles…', true);
+
+    for (const layerKey of NN_STEPS) {
+      if (token !== nnAnimToken) return;
+      nnFireLayer(layerKey);
+      nnPulseLinks(layerKey, layerKey === 'feat' ? 24 : layerKey.startsWith('d') ? 10 : 14);
+      const delay = layerKey.startsWith('d') ? 120 : layerKey === 'feat' ? 220 : 150;
+      await new Promise(r => setTimeout(r, delay));
+      if (token !== nnAnimToken) return;
+      nnState.nodes.filter(n => n.layer === layerKey).forEach(n => {
+        n.el.classList.remove('firing');
+        n.el.classList.add('active');
+      });
+    }
+  }
+
+  function nnUpdateHeadPanel(d) {
+    const ecoNames = ['neutre', 'farming', 'dépense'];
+    document.getElementById('headSpamV').textContent = (d.spam * 100).toFixed(1) + '%';
+    document.getElementById('headToxV').textContent  = (d.toxicity * 100).toFixed(1) + '%';
+    document.getElementById('headXpV').textContent   = Math.round(d.xp_score * 100) + ' / 100';
+    document.getElementById('headEcoV').textContent  = ecoNames[d.eco_label] + ' (' + (d.eco_probs[d.eco_label] * 100).toFixed(0) + '%)';
+    ['headSpam','headTox','headXp','headEco'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      const hot = i === 0 ? d.spam >= .5 : i === 1 ? d.toxicity >= .5 : i === 2 ? d.xp_score >= .5 : true;
+      el.classList.toggle('hot', hot);
+    });
+  }
+
+  function nnApplyOutputs(d) {
+    nnAnimToken++;
+    ['dspam','dtox','dxp','deco','out'].forEach(k => nnFireLayer(k));
+    const ecoColors = ['#72767d', '#3ba55d', '#faa81a'];
+    const outVals = [d.spam, d.toxicity, d.xp_score, ...d.eco_probs, d.eco_probs[d.eco_label]];
+    nnState.nodes.filter(n => n.layer === 'out').forEach(n => {
+      const v = outVals[n.i] ?? 0;
+      const layer = NN_LAYERS.find(l => l.key === 'out');
+      const color = n.i >= 3 && n.i <= 5 ? ecoColors[n.i - 3] : layer.outs[n.i].color;
+      const r = (n.r || 7) + v * 8;
+      n.circle.setAttribute('r', r);
+      n.el.classList.add('out-hot');
+      n.circle.setAttribute('stroke', n.i === 6 ? ecoColors[d.eco_label] : color);
+      n.circle.style.filter = `drop-shadow(0 0 ${4 + v * 14}px ${color})`;
+    });
+    nnUpdateHeadPanel(d);
+    const ecoName = ['neutre', 'farming', 'dépense'][d.eco_label] || 'neutre';
+    nnSetStatus(
+      `Pipeline complet · σ(spam)=${(d.spam*100).toFixed(0)}% · σ(tox)=${(d.toxicity*100).toFixed(0)}% · xp=${Math.round(d.xp_score*100)} · éco=${ecoName}`,
+      false
+    );
+  }
+
+  function nnIdle() {
+    nnClearFiring();
+    nnSetStatus('En attente d\'un message…');
+  }
+
+  buildBrainViz();
+
+  // ── Status ──────────────────────────────────────────────────────────────
+
+  async function checkStatus() {
+    const dot   = document.getElementById('statusDot');
+    const label = document.getElementById('statusLabel');
+    const badge = document.getElementById('authBadge');
+    try {
+      const r = await fetch(`${BASE}/status`);
+      const d = await r.json();
+      dot.className   = 'status-dot ' + (d.loaded ? 'online' : 'offline');
+      label.textContent = d.loaded ? `Modèle chargé · ${d.device.toUpperCase()}` : 'Modèle non chargé';
+      document.getElementById('specDevice').textContent = d.device || '—';
+      document.getElementById('specCustom').textContent = String(d.custom_examples ?? '—');
+
+      // Test auth
+      const ra = await fetch(`${BASE}/stats`, { headers: { 'X-Api-Key': key() } });
+      badge.className   = 'badge ' + (ra.ok ? 'ok' : '');
+      badge.textContent = ra.ok ? '✓ Clé valide' : '✗ Clé invalide';
+
+      if (ra.ok) loadStats(await ra.json());
+    } catch {
+      dot.className     = 'status-dot offline';
+      label.textContent = 'Service hors ligne';
+    }
+  }
+
+  // ── Stats ────────────────────────────────────────────────────────────────
+
+  function loadStats(d) {
+    document.getElementById('sTot').textContent  = d.total;
+    document.getElementById('sSpam').textContent = d.spam;
+    document.getElementById('sTox').textContent  = d.toxique;
+    document.getElementById('sFarm').textContent = d.farming;
+    document.getElementById('sDep').textContent  = d.depense;
+    document.getElementById('sNeu').textContent  = d.neutre;
+  }
+
+  async function refreshStats() {
+    const sp = document.getElementById('refreshSpinner');
+    sp.style.display = 'inline-block';
+    try {
+      const r = await fetch(`${BASE}/stats`, { headers: { 'X-Api-Key': key() } });
+      if (r.ok) loadStats(await r.json());
+    } finally { sp.style.display = 'none'; }
+  }
+
+  // ── Analyse ──────────────────────────────────────────────────────────────
+
+  function pct(v) { return (v * 100).toFixed(1) + '%'; }
+
+  function setBar(barId, value, colors) {
+    const bar  = document.getElementById(barId);
+    bar.style.width = (value * 100) + '%';
+    // couleur selon seuil
+    if (value >= .65) bar.style.background = colors[2];
+    else if (value >= .4) bar.style.background = colors[1];
+    else bar.style.background = colors[0];
+  }
+
+  function verdict(el, value, lo, hi, labels) {
+    // labels : [safe, warning, danger]
+    if (value >= hi)      { el.className = 'verdict danger';  el.textContent = labels[2]; }
+    else if (value >= lo) { el.className = 'verdict warning'; el.textContent = labels[1]; }
+    else                  { el.className = 'verdict safe';    el.textContent = labels[0]; }
+  }
+
+  async function analyse(text) {
+    renderTokenChips(text);
+    if (!text.trim()) {
+      document.getElementById('placeholderTxt').style.display = 'block';
+      document.getElementById('resultsGrid').style.display    = 'none';
+      nnIdle();
+      return;
+    }
+    const anim = nnAnimateForward();
+    try {
+      const r = await fetch(`${BASE}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Api-Key': key() },
+        body: JSON.stringify({ text }),
+      });
+      if (!r.ok) {
+        nnSetStatus('Erreur API — vérifie la clé ou le service.');
+        return;
+      }
+      const d = await r.json();
+      await anim;
+      nnApplyOutputs(d);
+
+      document.getElementById('placeholderTxt').style.display = 'none';
+      document.getElementById('resultsGrid').style.display    = 'grid';
+
+      // Spam
+      document.getElementById('spamVal').textContent = pct(d.spam);
+      setBar('spamBar', d.spam, ['var(--green)', 'var(--yellow)', 'var(--red)']);
+      verdict(document.getElementById('spamVerdict'), d.spam, .4, .65,
+              ['✓ Légitime', '⚠ Suspect', '✗ SPAM']);
+
+      // Toxicité
+      document.getElementById('toxVal').textContent = pct(d.toxicity);
+      setBar('toxBar', d.toxicity, ['var(--green)', 'var(--yellow)', 'var(--red)']);
+      verdict(document.getElementById('toxVerdict'), d.toxicity, .4, .70,
+              ['✓ Correct', '⚠ Attention', '✗ TOXIQUE']);
+
+      // XP
+      const xp = d.xp_score;
+      document.getElementById('xpVal').textContent = Math.round(xp * 100) + ' / 100';
+      setBar('xpBar', xp, ['var(--muted)', 'var(--cyan)', 'var(--accent)']);
+      const xpV = document.getElementById('xpVerdict');
+      xpV.className   = xp >= .6 ? 'verdict safe' : xp >= .3 ? 'verdict warning' : 'verdict';
+      xpV.textContent = xp >= .6 ? '⭐ Message riche' : xp >= .3 ? '➕ Valeur correcte' : '➖ Message court';
+
+      // Extra info
+      const extra = document.getElementById('extraTxt');
+      const isSpam = d.spam >= .65;
+      const isTox  = d.toxicity >= .70;
+      extra.textContent = isSpam ? '🚫 Ce message serait supprimé'
+                        : isTox  ? '⚠️ Avertissement toxicité'
+                        :          '✅ Message autorisé';
+      extra.style.color = isSpam || isTox ? 'var(--red)' : 'var(--green)';
+
+      // Économie
+      const probs  = d.eco_probs;
+      const active = d.eco_label;
+      for (let i = 0; i < 3; i++) {
+        document.getElementById(`ecoP${i}`).textContent  = pct(probs[i]);
+        document.getElementById(`ecoBar${i}`).style.width = (probs[i] * 100) + '%';
+        document.getElementById(`eco${i}`).className =
+          i === active ? 'eco-item eco-active' : 'eco-item';
+      }
+
+    } catch { /* service coupé */ }
+  }
+
+  // ── Écoute input ─────────────────────────────────────────────────────────
+
+  document.getElementById('msgInput').addEventListener('input', e => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => analyse(e.target.value), 400);
+  });
+
+  document.getElementById('apiKey').addEventListener('change', checkStatus);
+
+  // ── Init ─────────────────────────────────────────────────────────────────
+
+  checkStatus();
+  setInterval(refreshStats, 30000);
+</script>
+</body>
+</html>

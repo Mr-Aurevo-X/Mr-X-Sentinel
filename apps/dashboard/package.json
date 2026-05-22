@@ -1,0 +1,27 @@
+{
+  "name": "@sentinel/dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sentinel/database": "workspace:*",
+    "@sentinel/shared": "workspace:*",
+    "bullmq": "^5.34.0",
+    "ioredis": "^5.4.2",
+    "next": "^15.1.0",
+    "next-auth": "^4.24.11",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "typescript": "^5.7.2"
+  }
+}

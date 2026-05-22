@@ -1,0 +1,28 @@
+{
+  "name": "@sentinel/bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx watch src/shard.ts",
+    "dev:worker": "tsx watch src/worker.ts",
+    "start": "node dist/index.js",
+    "start:worker": "node dist/worker.js",
+    "deploy-commands": "tsx src/deploy-commands.ts"
+  },
+  "dependencies": {
+    "@sentinel/core": "workspace:*",
+    "@sentinel/database": "workspace:*",
+    "@sentinel/shared": "workspace:*",
+    "@sentinel/ai": "workspace:*",
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.7",
+    "i18next": "^24.2.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
