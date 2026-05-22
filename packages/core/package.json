@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-presets.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

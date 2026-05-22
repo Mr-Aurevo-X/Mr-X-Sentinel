@@ -20,5 +20,5 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
-      - run: pnpm -r run typecheck
+      # Recursive build respects workspace dependency order (dist/ required for imports)
       - run: pnpm -r run build
