@@ -38,7 +38,7 @@ export async function replyPayload(
     delete opts.content;
   }
   if (interaction.deferred || interaction.replied) {
-    const { flags, ...editOpts } = opts;
+    const { flags: _flags, ...editOpts } = opts;
     await interaction.editReply(editOpts);
   } else {
     await interaction.reply({ ...opts, ephemeral });

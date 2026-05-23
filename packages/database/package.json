@@ -16,7 +16,8 @@
     "typecheck": "tsc --noEmit",
     "generate": "dotenv -e ../../.env -- prisma generate",
     "migrate": "dotenv -e ../../.env -- prisma migrate dev",
-    "push": "dotenv -e ../../.env -- prisma db push"
+    "push": "dotenv -e ../../.env -- prisma db push",
+    "migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",

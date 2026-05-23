@@ -31,7 +31,10 @@ export async function chatCompletion(
 
   const messages = [
     { role: "system", content: "Tu es l'assistant Mr-X Sentinel, utile et concis. Réponds en français." },
-    ...history.map((m) => ({ role: m.role, content: m.content })),
+    ...history.map((m: { role: string; content: string }) => ({
+      role: m.role,
+      content: m.content,
+    })),
     { role: "user", content: prompt },
   ];
 

@@ -1,0 +1,117 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mrx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      POSTGRES_DB: ${POSTGRES_DB:-sentinel}
+    volumes:
+      - sentinel_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mrx} -d ${POSTGRES_DB:-sentinel}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks: [sentinel]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - sentinel_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks: [sentinel]
+
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    restart: unless-stopped
+    volumes:
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
+    depends_on:
+      redis: { condition: service_healthy }
+    networks: [sentinel]
+
+  brain:
+    build: { context: ./services/brain, dockerfile: Dockerfile }
+    restart: unless-stopped
+    environment:
+      BRAIN_API_KEY: ${BRAIN_API_KEY:-dev-brain-key}
+    profiles: [brain]
+    networks: [sentinel]
+
+  migrate:
+    build: { context: ., dockerfile: docker/bot.Dockerfile }
+    restart: "no"
+    working_dir: /app/packages/database
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mrx}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinel}
+    command: ["sh", "-c", "node ../../node_modules/prisma/build/index.js migrate deploy"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [sentinel]
+
+  bot:
+    build: { context: ., dockerfile: docker/bot.Dockerfile }
+    restart: unless-stopped
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN:?DISCORD_TOKEN required}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-1507473175498457129}
+      BOT_OWNER_ID: ${BOT_OWNER_ID:-}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mrx}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinel}
+      REDIS_URL: redis://redis:6379
+      BRAIN_URL: http://brain:8765
+      BRAIN_ENABLED: ${BRAIN_ENABLED:-false}
+      LAVALINK_HOST: lavalink
+      LAVALINK_PORT: "2333"
+      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD:-youshallnotpass}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    networks: [sentinel]
+
+  worker:
+    build: { context: ., dockerfile: docker/bot.Dockerfile }
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN:?DISCORD_TOKEN required}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mrx}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinel}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    networks: [sentinel]
+
+  dashboard:
+    build: { context: ., dockerfile: docker/dashboard.Dockerfile }
+    restart: unless-stopped
+    ports:
+      - "${DASHBOARD_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mrx}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinel}
+      REDIS_URL: redis://redis:6379
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?NEXTAUTH_SECRET required}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:?NEXTAUTH_URL required}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-1507473175498457129}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:?DISCORD_CLIENT_SECRET required}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    networks: [sentinel]
+
+volumes:
+  sentinel_pg_data:
+  sentinel_redis_data:
+
+networks:
+  sentinel:
+    driver: bridge

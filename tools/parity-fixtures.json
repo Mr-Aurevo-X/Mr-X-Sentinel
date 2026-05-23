@@ -1,0 +1,15 @@
+{
+  "xpLevels": [
+    { "xp": 0, "level": 0 },
+    { "xp": 100, "level": 1 },
+    { "xp": 10000, "level": 10 },
+    { "xp": 12100, "level": 11 }
+  ],
+  "economy": {
+    "weeklyReward": 1500,
+    "monthlyReward": 5000,
+    "dailyCooldownMs": 86400000,
+    "weeklyCooldownMs": 604800000,
+    "monthlyCooldownMs": 2592000000
+  }
+}
