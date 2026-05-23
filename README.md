@@ -337,21 +337,44 @@ Salons nommés `logs-<type>` (ex. `logs-moderation`). Rôle **Logs** créé auto
 
 ## Architecture
 
+Monorepo **pnpm** : le bot Discord consomme `@sentinel/core` (logique métier) et `@sentinel/database` (Prisma). Le dashboard web est une app Next.js séparée sur la même base Postgres.
+
 ```
 Mr-X-Sentinel/
 ├── apps/
-│   ├── bot/              # discord.js, commandes, hub, musique
-│   └── dashboard/        # Next.js 15 + NextAuth (panel web)
+│   ├── bot/                    # Processus Discord (discord.js)
+│   │   └── src/
+│   │       ├── commands/       # Slash : definitions, permissions, handlers/
+│   │       ├── interaction-router.ts  # Boutons, selects, modals
+│   │       ├── client.ts       # Intents, listeners, modules core
+│   │       ├── views/          # UI Discord (panels, hubs)
+│   │       ├── ui/embeds.ts    # Charte embeds
+│   │       ├── services/       # Level-up, blackjack, community listeners…
+│   │       ├── music/          # Lavalink / Kazagumo
+│   │       ├── worker.ts       # File restore (BullMQ / Redis)
+│   │       └── index.ts | shard.ts
+│   └── dashboard/              # Next.js 15 (App Router)
+│       ├── app/                # Pages + routes API (config, lockdown, restore)
+│       ├── components/         # GuildDashboard, Nav…
+│       └── lib/                # Auth NextAuth
 ├── packages/
-│   ├── core/             # Modules métier, logs, templates, tickets…
-│   ├── database/         # Prisma + PostgreSQL
-│   ├── ai/               # Client Groq/OpenAI pour /chat
-│   └── shared/           # Schémas Zod, features, types de logs
+│   ├── shared/                 # Zod config, features, customId, UI tokens
+│   ├── database/               # Prisma schema + client Postgres
+│   ├── core/                   # Métier : anti-nuke/raid, automod, économie, XP,
+│   │                           # tickets, templates (presets JSON), logs, brain client
+│   └── ai/                     # Client Groq/OpenAI pour /chat
 ├── services/
-│   └── brain/            # API FastAPI ML (optionnel)
-├── lavalink/             # Config Lavalink v4
-└── docker-compose.yml    # Postgres, Redis, Lavalink
+│   └── brain/                  # API Python anti-spam / toxicité (Docker)
+├── tools/
+│   ├── migrate-legacy-sqlite.ts
+│   └── migrate-ult-postgres.ts # Import Ult → Sentinel
+├── docs/                       # LEGACY_FEATURE_MATRIX, UI_STYLE_GUIDE
+├── lavalink/                   # application.yml Lavalink v4
+├── .github/workflows/          # CI (build:ci)
+└── docker-compose.yml          # Postgres, Redis, Lavalink, brain
 ```
+
+**Flux interaction bot :** slash → `commands/index.ts` (`assertSlashAccess`) → handler → `@sentinel/core` · composant → `interaction-router.ts` (`assertComponentAccess` + anticheat économie).
 
 **Scripts racine utiles :**
 
