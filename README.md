@@ -22,7 +22,6 @@ Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tick
 - [Architecture](#architecture)
 - [Dépannage](#dépannage)
 - [Développement et CI](#développement-et-ci)
-- [Déploiement VPS](#déploiement-vps)
 
 ---
 
@@ -433,12 +432,25 @@ Données migrées : config guild (`guild_configs`), wallets/XP (`users`), warns 
 ## Développement et CI
 
 ```bash
-pnpm run build:ci    # Build ordonné (shared → database → ai → core → bot → dashboard)
-pnpm lint
+pnpm verify          # lint + test + build:ci
+pnpm verify:smoke    # slash commands, presets, ping DB/Redis si configurés
 pnpm test
+pnpm lint
 ```
 
-Le workflow GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) exécute `pnpm install --frozen-lockfile`, `pnpm db:generate` et `pnpm run build:ci` sur chaque push vers `main`.
+Le workflow GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) exécute `pnpm verify`, migrations Prisma et `pnpm verify:smoke` sur chaque push vers `main`.
+
+---
+
+## Déploiement VPS
+
+```bash
+cp .env.production.example .env
+docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+curl -s http://localhost:3000/api/health
+```
+
+Guide : [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md) · bootstrap : [`scripts/vps-bootstrap.sh`](scripts/vps-bootstrap.sh).
 
 ---
 
