@@ -17,11 +17,18 @@ import {
   levelsService,
   getGuildFeatures,
   logService,
+  giveawayService,
+  reactionRoleService,
 } from "@sentinel/core";
-import { getOrCreateGuild } from "@sentinel/database";
+import { getOrCreateGuild, prisma } from "@sentinel/database";
 import { t } from "./i18n/index.js";
 import { handleInteraction } from "./commands/index.js";
 import { musicManager } from "./music/MusicManager.js";
+import { runStartupHealthChecks } from "./services/startup-health.js";
+import { logBrainStatusAtBoot } from "./services/BrainLauncher.js";
+import { processLevelUp } from "./services/LevelUpHandler.js";
+import { welcomeAnnouncer } from "./services/WelcomeAnnouncer.js";
+import { registerCommunityListeners, updateMemberCounter } from "./services/CommunityListeners.js";
 
 export function createClient(): Client {
   const client = new Client({
@@ -34,8 +41,9 @@ export function createClient(): Client {
       GatewayIntentBits.GuildWebhooks,
       GatewayIntentBits.GuildVoiceStates,
       GatewayIntentBits.GuildPresences,
+      GatewayIntentBits.GuildMessageReactions,
     ],
-    partials: [Partials.GuildMember, Partials.Message],
+    partials: [Partials.GuildMember, Partials.Message, Partials.Reaction],
   });
 
   const antiNuke = new AntiNukeModule(client);
@@ -47,6 +55,8 @@ export function createClient(): Client {
   (client as Client & { moderation: ModerationService }).moderation = moderation;
 
   client.once(Events.ClientReady, async (c) => {
+    await runStartupHealthChecks();
+    await logBrainStatusAtBoot();
     await getRedis().connect().catch(() => getRedis());
     await musicManager.init(c).catch((err) => {
       logger.warn({ err }, "Lavalink indisponible — musique désactivée");
@@ -66,6 +76,10 @@ export function createClient(): Client {
       },
       6 * 60 * 60 * 1000,
     );
+
+    setInterval(() => {
+      void giveawayService.tick(c).catch(() => undefined);
+    }, 60_000);
   });
 
   client.on(Events.GuildCreate, async (guild) => {
@@ -78,33 +92,52 @@ export function createClient(): Client {
   });
 
   client.on(Events.GuildMemberAdd, async (member) => {
+    await updateMemberCounter(client, member.guild.id, member.guild.memberCount);
     const features = await getGuildFeatures(member.guild.id);
     if (!features.community) return;
-    await logService.log(client, member.guild.id, "join_leave", {
-      title: "Membre rejoint",
-      description: `${member.user.tag} (${member.user.id})`,
-      actorId: member.user.id,
-    });
+    await welcomeAnnouncer.onMemberJoin(client, member);
   });
+
+  registerCommunityListeners(client);
 
   client.on(Events.GuildMemberRemove, async (member) => {
     if (!member.guild) return;
     const features = await getGuildFeatures(member.guild.id);
     if (!features.community) return;
-    await logService.log(client, member.guild.id, "join_leave", {
-      title: "Membre parti",
-      description: `${member.user?.tag ?? "Inconnu"} (${member.id})`,
-    });
+    await welcomeAnnouncer.onMemberLeave(client, member);
   });
 
   client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot || !message.guild) return;
     const features = await getGuildFeatures(message.guild.id);
     if (!features.levels) return;
-    const result = await levelsService.addMessageXp(message.guild.id, message.author.id);
+    const result = await levelsService.addMessageXp(
+      message.guild.id,
+      message.author.id,
+      message.content ?? "",
+    );
     if (result.leveledUp) {
-      await levelsService.logLevelUp(client, message.guild.id, message.author.id, result.level);
+      await processLevelUp(client, message.guild, message.author.id, result);
     }
+  });
+
+  client.on(Events.MessageReactionAdd, async (reaction, user) => {
+    if (user.bot || !reaction.message.guild) return;
+    if (reaction.partial) await reaction.fetch().catch(() => undefined);
+    const emoji = reaction.emoji.name;
+    if (emoji === "🎉" && reaction.message.id) {
+      const g = await prisma.giveaway.findFirst({
+        where: { messageId: reaction.message.id, ended: false },
+      });
+      if (g) await giveawayService.enter(g.id, user.id);
+    }
+    await reactionRoleService.handleReaction(reaction, user, true, client);
+  });
+
+  client.on(Events.MessageReactionRemove, async (reaction, user) => {
+    if (user.bot || !reaction.message.guild) return;
+    if (reaction.partial) await reaction.fetch().catch(() => undefined);
+    await reactionRoleService.handleReaction(reaction, user, false, client);
   });
 
   client.on(Events.MessageDelete, async (message) => {

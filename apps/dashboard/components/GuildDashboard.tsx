@@ -218,6 +218,63 @@ export function GuildDashboard({
       </div>
 
       <div className="card" style={{ marginTop: "1rem" }}>
+        <h2>Économie</h2>
+        <div className="form-group">
+          <label>Daily min / max</label>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <input
+              type="number"
+              value={config.economy.dailyMin}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  economy: { ...config.economy, dailyMin: parseInt(e.target.value, 10) },
+                })
+              }
+            />
+            <input
+              type="number"
+              value={config.economy.dailyMax}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  economy: { ...config.economy, dailyMax: parseInt(e.target.value, 10) },
+                })
+              }
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <label>Work min / max</label>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <input
+              type="number"
+              value={config.economy.workMin}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  economy: { ...config.economy, workMin: parseInt(e.target.value, 10) },
+                })
+              }
+            />
+            <input
+              type="number"
+              value={config.economy.workMax}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  economy: { ...config.economy, workMax: parseInt(e.target.value, 10) },
+                })
+              }
+            />
+          </div>
+        </div>
+        <button className="btn" disabled={saving} onClick={() => saveConfig({ economy: config.economy })}>
+          Sauvegarder économie
+        </button>
+      </div>
+
+      <div className="card" style={{ marginTop: "1rem" }}>
         <h2>Automod</h2>
         <div className="form-group">
           <label>Mentions max</label>

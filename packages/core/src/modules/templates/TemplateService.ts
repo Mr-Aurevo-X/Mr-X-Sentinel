@@ -136,6 +136,66 @@ export class TemplateService {
 
     return template;
   }
+
+  async resetGuildStructure(
+    guild: Guild,
+    actorId: string,
+  ): Promise<{ deletedChannels: number; deletedCategories: number; deletedRoles: number }> {
+    const me = guild.members.me;
+    if (!me) throw new Error("Bot introuvable sur le serveur.");
+    if (!me.permissions.has(PermissionFlagsBits.ManageChannels)) {
+      throw new Error("Le bot doit avoir la permission Gérer les salons.");
+    }
+    if (!me.permissions.has(PermissionFlagsBits.ManageRoles)) {
+      throw new Error("Le bot doit avoir la permission Gérer les rôles.");
+    }
+
+    let deletedChannels = 0;
+    let deletedCategories = 0;
+    let deletedRoles = 0;
+    const reason = `Reset serveur demandé par ${actorId}`;
+
+    for (const category of [...guild.channels.cache.values()].filter((c) => c.type === ChannelType.GuildCategory)) {
+      for (const ch of [...category.children.cache.values()]) {
+        try {
+          await ch.delete(reason);
+          deletedChannels += 1;
+        } catch {
+          /* skip protected */
+        }
+      }
+      try {
+        await category.delete(reason);
+        deletedCategories += 1;
+      } catch {
+        /* skip */
+      }
+    }
+
+    for (const ch of [...guild.channels.cache.values()]) {
+      if (ch.type === ChannelType.GuildCategory) continue;
+      if (ch.parentId) continue;
+      try {
+        await ch.delete(reason);
+        deletedChannels += 1;
+      } catch {
+        /* skip */
+      }
+    }
+
+    for (const role of [...guild.roles.cache.values()]) {
+      if (role.id === guild.id || role.managed) continue;
+      if (me.roles.highest.comparePositionTo(role) <= 0) continue;
+      try {
+        await role.delete(reason);
+        deletedRoles += 1;
+      } catch {
+        /* skip */
+      }
+    }
+
+    return { deletedChannels, deletedCategories, deletedRoles };
+  }
 }
 
 export const templateService = new TemplateService();

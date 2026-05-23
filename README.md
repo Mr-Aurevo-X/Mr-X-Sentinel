@@ -30,18 +30,21 @@ Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tick
 | Module | Description | Activation |
 |--------|-------------|------------|
 | **Sécurité** | Anti-nuke, anti-raid, automod, lockdown, snapshots | `/config feature` (modules par défaut on) |
-| **Modération** | Slash dédiés (`/ban`, `/kick`, …) + `/panel` | `moderation` (défaut: on) |
+| **Modération** | Slash dédiés + `/panel` interactif (boutons) + `/nuke` (clone salon) | `moderation` (défaut: on) |
 | **Logs** | 12 types, catégorie **Logs Sentinel**, rôle **Logs** | `/setup create_logs:true` ou `/logs create` |
-| **Communauté** | XP, arrivées/départs, messages supprimés/modifiés | `community`, `levels` |
-| **Économie** | Portefeuille, banque, daily/work via hub, boutique | `economy` |
-| **Fun** | Coinflip, slots, roulette + boutons hub | `fun` |
+| **Communauté** | XP (embed level-up, streak), welcome/goodbye, polls, giveaways, reaction roles | `community`, `levels` |
+| **Économie** | Portefeuille, banque, **$**, daily/weekly/monthly, hub `/eco`, catalogue `/buy` + boutique rôles `/shop` | `economy` |
+| **Fun** | Coinflip, slots, roulette, **blackjack interactif** + hubs `/gamble` `/minijeux` (boutons) | `fun` |
 | **Tickets** | Panneau, ouverture, claim, fermeture | `tickets` |
 | **Templates** | 14 structures de serveur (rôles + salons) | `/setup template:…` |
 | **IA** | `/chat` (Groq par défaut) | `ai` + `OPENAI_API_KEY` |
 | **Musique** | `/play` + contrôles (Lavalink) | `music` + Docker Lavalink |
-| **Brain** | Anti-spam / toxicité (API Python) | `brain` + service `services/brain` |
+| **Brain** | Anti-spam / toxicité (API Python) | `brain` + `docker compose up -d brain` |
 
-Hub membre : **`/sentinel menu`** (daily, travail, XP, slots, ouvrir ticket).
+Hub membre : **`/sentinel menu`** ou **`/eco`** (navigation boutons, embeds premium).
+
+Monnaie affichée : **`12 500 $`** (voir [`docs/UI_STYLE_GUIDE.md`](docs/UI_STYLE_GUIDE.md)).  
+Parité legacy : [`docs/LEGACY_FEATURE_MATRIX.md`](docs/LEGACY_FEATURE_MATRIX.md).
 
 ---
 
@@ -58,6 +61,7 @@ Hub membre : **`/sentinel menu`** (daily, travail, XP, slots, ouvrir ticket).
 - Presence Intent  
 - Server Members Intent  
 - Message Content Intent  
+- **Guild Message Reactions** (giveaways 🎉, reaction roles)
 
 ### Invitation (permissions administrateur)
 
@@ -108,7 +112,7 @@ pnpm dev:bot
 | `DISCORD_TOKEN` | **Oui** (bot) | Portal → Bot → Token |
 | `DISCORD_CLIENT_ID` | Oui | `1507473175498457129` (déjà dans l’exemple) |
 | `DISCORD_CLIENT_SECRET` | Dashboard | Portal → OAuth2 → Client Secret |
-| `BOT_OWNER_ID` | Recommandé | Votre ID Discord |
+| `BOT_OWNER_ID` | **Oui** pour `/owner` | Votre ID Discord (commandes bot-owner) |
 | `SHARD_COUNT` | Non | Laisser vide (sharding inutile sur petits serveurs) |
 | `DATABASE_URL` | Oui | `postgresql://mrx:mrx@localhost:5433/sentinel` (Docker, port **5433** évite conflit avec Postgres Windows) |
 | `REDIS_URL` | Oui | `redis://localhost:6379` |
@@ -161,8 +165,10 @@ http://localhost:3000/api/auth/callback/discord
 2. **`/setup`** — `create_logs:true` pour créer les salons de logs ; option `template:gaming` (voir [Templates](#templates-serveur)).
 3. **`/fonctionnement`** — guide interactif (réservé au **propriétaire** du serveur).
 4. **`/ticket setup`** — choisir le salon du panneau tickets (+ rôle support optionnel).
-5. **`/admin shop_add`** — ajouter des articles à la boutique (optionnel).
-6. **`/config feature`** — activer/désactiver `community`, `economy`, `levels`, `tickets`, `music`, `ai`.
+5. **`/admin shop_add`** — boutique **rôles serveur** (optionnel ; distinct du catalogue `/buy`).
+6. **`/config welcome_panel`** ou **`/config welcome`** — salons bienvenue / départ / rôle auto.
+7. **`/setlevelchannel`** — salon des annonces level-up (embed premium).
+8. **`/config feature`** — activer/désactiver `community`, `economy`, `levels`, `tickets`, `music`, `ai`.
 
 ---
 
@@ -172,9 +178,9 @@ http://localhost:3000/api/auth/callback/discord
 
 | Commande | Description |
 |----------|-------------|
-| `/sentinel menu` | Hub : daily, travail, XP, slots, ticket |
+| `/sentinel menu` | Hub : daily, travail, XP, casino, ticket |
 | `/help` | Aide générale |
-| `/panel` | Panneau staff (modération, sécurité, logs) |
+| `/panel` | Panneau staff **interactif** (warn, mute, kick, ban, nuke…) |
 
 ### Propriétaire / administration
 
@@ -186,8 +192,13 @@ http://localhost:3000/api/auth/callback/discord
 | `/logs create` | Créer tous les salons de logs |
 | `/config view` | Voir les modules activés |
 | `/config feature` | Activer/désactiver un module |
+| `/config welcome` | Salons bienvenue / départ / rôle auto |
+| `/config welcome_panel` | Panneau création salons welcome (catégorie COMMUNAUTÉ) |
+| `/config economy` | Réglages économie (daily/work min-max) |
+| `/template panel` | Panneau templates (appliquer / reset complet) |
 | `/admin announce` | Annonce embed dans un salon |
-| `/admin shop_add` | Ajouter un article boutique |
+| `/admin shop_add` | Boutique **serveur** — article + rôle (`item_id` pour `/shop buy`) |
+| `/admin shop_remove` | Retirer un article boutique serveur |
 | `/backup create` | Snapshot du serveur |
 | `/backup list` | Lister les snapshots |
 | `/backup restore` | Planifier une restauration |
@@ -201,13 +212,14 @@ http://localhost:3000/api/auth/callback/discord
 |----------|-------------|
 | `/ban` | Bannir un membre |
 | `/unban` | Débannir par ID |
+| `/softban` | Ban + unban immédiat (purge messages) |
 | `/kick` | Expulser |
 | `/mute` | Timeout (minutes) |
 | `/unmute` | Retirer le mute |
 | `/warn` | Avertissement |
 | `/warnings` | Voir les warns |
 | `/clear` | Supprimer des messages (1–100) |
-| `/nuke` | Vider un salon (confirmation) |
+| `/nuke` | Recréer le salon (clone → delete, confirmation) |
 | `/clearwarn` | Effacer les warns d’un membre |
 | `/nickname` | Changer le pseudo |
 
@@ -215,23 +227,32 @@ http://localhost:3000/api/auth/callback/discord
 
 | Commande | Description |
 |----------|-------------|
-| `/balance` | Solde (poche + banque) |
+| `/eco` | Hub économie (boutons Accueil, Banque, Inventaire, Shop, Info) |
+| `/balance` | Solde embed (poche + banque + statut richesse) |
+| `/daily` `/weekly` `/monthly` `/work` | Récompenses et travail |
 | `/pay` | Payer un membre |
-| `/rob` | Braquage (aléatoire) |
+| `/rob` | Braquage (cooldown par victime, bouclier item) |
 | `/crime` | Crime (cooldown 2h) |
 | `/deposit` | Déposer en banque |
 | `/withdraw` | Retirer de la banque |
-| `/leaderboard` | Classement coins |
-| `/shop list` | Liste des articles |
-| `/shop buy` | Acheter (`item_id` de la liste) |
+| `/buy` | Acheter un objet du **catalogue global** (15 items Shadow) |
+| `/use` | Utiliser un objet inventaire |
+| `/leaderboard` | Classement **Économie · Niveaux · Global** (onglets + pagination) |
+| `/shop list` | Catalogue global + articles boutique rôles du serveur |
+| `/shop buy` | Acheter un **rôle serveur** (`item_id` affiché dans `/shop list`) |
+
+> **Deux boutiques :** `/buy` = catalogue fixe (pizza, shield, PC…) · `/shop` = articles créés par le staff avec `/admin shop_add`.
 
 ### Fun (casino)
 
 | Commande | Description |
 |----------|-------------|
-| `/fun coinflip` | Pile ou face |
-| `/fun slots` | Machine à sous |
-| `/fun roulette` | Rouge / noir / vert |
+| `/gamble` | Hub casino (**boutons** : pile/face, slots, roulette, blackjack) |
+| `/minijeux` | Hub mini-jeux (**boutons** : RPS, dé, devine) |
+| `/fun coinflip` | Pile ou face (mise) |
+| `/fun slots` | Machine à sous (mise) |
+| `/fun roulette` | Rouge / noir / vert (mise) |
+| `/fun blackjack` | Blackjack **interactif** Hit / Stand / Double (mise) |
 
 ### Tickets
 
@@ -246,8 +267,27 @@ http://localhost:3000/api/auth/callback/discord
 
 | Commande | Description |
 |----------|-------------|
-| `/rank` | Niveau et XP |
+| `/rank` | Niveau XP (embed + barre de progression) |
+| `/lvl_info` | Guide du système de niveaux (streak, commandes) |
+| `/setlevelchannel` | [Owner] Salon annonces level-up (embed premium) |
+| `/removelevelchannel` | [Owner] Retirer le salon level-up |
+| `/levelsinfo` | [Owner] Voir la config niveaux actuelle |
 | `/suggest` | Envoyer une suggestion (embed) |
+| `/poll create` | Créer un sondage (2–4 options, durée optionnelle) |
+| `/poll list` | Lister les sondages du serveur |
+| `/giveaway create` | Lancer un giveaway (réagir 🎉 pour participer) |
+| `/giveaway end` | Terminer un giveaway par ID |
+| `/giveaway list` | Giveaways actifs |
+| `/reactionrole add` | Lier emoji → rôle sur un message |
+| `/reactionrole remove` | Retirer une reaction role |
+| `/reactionrole list` | Lister les reaction roles |
+
+### Bot owner (`BOT_OWNER_ID` dans `.env`)
+
+| Commande | Description |
+|----------|-------------|
+| `/owner balance` | Modifier cash / banque d’un membre |
+| `/owner xp` | Modifier XP et niveau d’un membre |
 
 ### IA, musique, Brain
 
@@ -322,6 +362,29 @@ Mr-X-Sentinel/
 | `pnpm typecheck` | Vérification TypeScript |
 | `pnpm test` | Tests `@sentinel/core` |
 | `pnpm migrate:legacy` | Migration depuis anciens bots SQLite |
+| `pnpm migrate:ult` | Migration **Mr-X-Ult** (PostgreSQL) → Sentinel |
+
+---
+
+## Slash uniquement & permissions
+
+- **Pas de préfixe `!`** — toutes les commandes sont des **slash commands** (`/`).
+- Tiers runtime : **public** · **mod** · **admin** · **propriétaire serveur** · **bot owner** (`BOT_OWNER_ID`).
+- `/owner` est masqué dans Discord (`default_member_permissions = 0`) mais vérifie `BOT_OWNER_ID` côté bot.
+- Rôles niveaux auto : variables optionnelles `REFERENCE_ROLE_ID` et `BOT_ROLE_ID` (ou `/levels roles` par serveur).
+
+---
+
+## Migration depuis Mr-X-Ult (PostgreSQL)
+
+1. Copier l’URL Postgres Ult (lecture seule recommandée).
+2. `pnpm install` puis `pnpm db:push` sur la base **Sentinel**.
+3. Dry-run :  
+   `pnpm migrate:ult -- --source-url=postgresql://USER:PASS@HOST:5432/ult_db --guild-id=VOTRE_GUILD_ID --dry-run`
+4. Import réel (sans `--dry-run`) pour le même `--guild-id`.
+5. Redéployer les commandes : `pnpm --filter @sentinel/bot deploy-commands`
+
+Données migrées : config guild (`guild_configs`), wallets/XP (`users`), warns (`warnings`). Starboard historique et rappels passés restent hors scope.
 
 ---
 
@@ -334,6 +397,8 @@ Mr-X-Sentinel/
 | `pnpm db:push` échoue | `docker compose up -d` ; utiliser le port **5433** dans `DATABASE_URL` (conflit si Postgres Windows tourne sur 5432) |
 | Bot ne démarre pas | Vérifier `DISCORD_TOKEN` et `DATABASE_URL` dans `.env` |
 | Slash commands absentes | `pnpm --filter @sentinel/bot deploy-commands` |
+| Giveaways / reaction roles inactifs | Activer **Guild Message Reactions** dans le Portal Discord |
+| `/owner` refusé | Renseigner `BOT_OWNER_ID` dans `.env` (votre ID utilisateur) |
 | `/chat` ne répond pas | Renseigner `OPENAI_API_KEY` (Groq), redémarrer le bot |
 | `/play` ne marche pas | Être en vocal ; Lavalink up (`docker compose ps`) |
 | Dashboard login impossible | `DISCORD_CLIENT_SECRET`, `NEXTAUTH_SECRET`, redirect OAuth |

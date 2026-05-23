@@ -1,3 +1,4 @@
+import { formatMoney } from "@sentinel/shared";
 import { prisma } from "@sentinel/database";
 import type { Client, GuildMember } from "discord.js";
 import { economyService } from "./EconomyService.js";
@@ -12,13 +13,19 @@ export class ShopService {
     return prisma.shopItem.create({ data: { guildId, name, price, roleId: roleId ?? null } });
   }
 
+  async remove(guildId: string, itemId: string) {
+    const item = await prisma.shopItem.findFirst({ where: { id: itemId, guildId } });
+    if (!item) throw new Error("Article introuvable.");
+    await prisma.shopItem.delete({ where: { id: item.id } });
+  }
+
   async buy(member: GuildMember, itemId: string, client: Client) {
     const item = await prisma.shopItem.findFirst({
       where: { id: itemId, guildId: member.guild.id },
     });
     if (!item) throw new Error("Article introuvable.");
     const wallet = await economyService.getOrCreateWallet(member.guild.id, member.id);
-    if (wallet.cash < item.price) throw new Error("Pas assez de coins.");
+    if (wallet.cash < item.price) throw new Error(`Pas assez d'argent. ${formatMoney(wallet.cash)} disponible.`);
     await prisma.userWallet.update({
       where: { guildId_userId: { guildId: member.guild.id, userId: member.id } },
       data: { cash: { decrement: item.price } },
@@ -28,7 +35,7 @@ export class ShopService {
     }
     await logService.log(client, member.guild.id, "economy", {
       title: "Achat boutique",
-      description: `<@${member.id}> a acheté **${item.name}** (${item.price} coins)`,
+      description: `<@${member.id}> a acheté **${item.name}** (${formatMoney(item.price)})`,
       actorId: member.id,
     });
     return item;

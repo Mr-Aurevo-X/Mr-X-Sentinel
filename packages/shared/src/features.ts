@@ -11,8 +11,8 @@ export const guildFeaturesSchema = z.object({
   tickets: z.boolean().default(true),
   templates: z.boolean().default(true),
   community: z.boolean().default(true),
-  music: z.boolean().default(false),
-  ai: z.boolean().default(false),
+  music: z.boolean().default(true),
+  ai: z.boolean().default(true),
   brain: z.boolean().default(true),
 });
 

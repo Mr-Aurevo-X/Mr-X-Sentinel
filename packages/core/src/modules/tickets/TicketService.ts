@@ -130,6 +130,38 @@ export class TicketService {
       description: `<#${channelId}>`,
     });
   }
+
+  async reopen(guild: Guild, ownerId: string, client: Client): Promise<TextChannel> {
+    const member = await guild.members.fetch(ownerId);
+    return this.openTicket(guild, member, client);
+  }
+
+  async addMember(channelId: string, userId: string, client: Client) {
+    const ticket = await prisma.ticketChannel.findUnique({ where: { channelId } });
+    if (!ticket) throw new Error("Ticket introuvable.");
+    const guild = await client.guilds.fetch(ticket.guildId);
+    const ch = guild.channels.cache.get(channelId);
+    if (!ch?.isTextBased() || !("permissionOverwrites" in ch)) {
+      throw new Error("Salon ticket introuvable.");
+    }
+    await ch.permissionOverwrites.edit(userId, {
+      ViewChannel: true,
+      SendMessages: true,
+      ReadMessageHistory: true,
+    });
+  }
+
+  async removeMember(channelId: string, userId: string, client: Client) {
+    const ticket = await prisma.ticketChannel.findUnique({ where: { channelId } });
+    if (!ticket) throw new Error("Ticket introuvable.");
+    if (userId === ticket.ownerId) throw new Error("Impossible de retirer le propriétaire du ticket.");
+    const guild = await client.guilds.fetch(ticket.guildId);
+    const ch = guild.channels.cache.get(channelId);
+    if (!ch?.isTextBased() || !("permissionOverwrites" in ch)) {
+      throw new Error("Salon ticket introuvable.");
+    }
+    await ch.permissionOverwrites.delete(userId);
+  }
 }
 
 export const ticketService = new TicketService();

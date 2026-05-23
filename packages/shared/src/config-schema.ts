@@ -41,6 +41,11 @@ export const automodConfigSchema = z.object({
   wordBlacklist: z.array(z.string()).default([]),
   blockEveryone: z.boolean().default(true),
   newAccountHours: z.number().int().min(0).max(168).default(24),
+  blockCaps: z.boolean().default(true),
+  capsRatioLimit: z.number().min(0.5).max(1).default(0.7),
+  blockZalgo: z.boolean().default(true),
+  blockExternalUrls: z.boolean().default(false),
+  blockedUrls: z.array(z.string()).default([]),
 });
 
 export const ticketConfigSchema = z.object({
@@ -57,6 +62,44 @@ export const verificationConfigSchema = z.object({
   useTurnstile: z.boolean().default(false),
 });
 
+export const levelsConfigSchema = z.object({
+  levelUpChannelId: z.string().nullable().default(null),
+  rewardRolesEnabled: z.boolean().default(true),
+  referenceRoleId: z.string().nullable().default(null),
+  botRoleId: z.string().nullable().default(null),
+});
+
+export const economyConfigSchema = z.object({
+  dailyMin: z.number().int().min(0).default(100),
+  dailyMax: z.number().int().min(0).default(500),
+  workMin: z.number().int().min(0).default(80),
+  workMax: z.number().int().min(0).default(350),
+  crimeMin: z.number().int().min(0).default(50),
+  crimeMax: z.number().int().min(0).default(500),
+});
+
+export const welcomeConfigSchema = z.object({
+  welcomeChannelId: z.string().nullable().default(null),
+  goodbyeChannelId: z.string().nullable().default(null),
+  autoRoleId: z.string().nullable().default(null),
+});
+
+export const staffConfigSchema = z.object({
+  modRoleIds: z.array(z.string()).default([]),
+});
+
+export const channelsConfigSchema = z.object({
+  spamChannelId: z.string().nullable().default(null),
+  counterChannelId: z.string().nullable().default(null),
+  counterTemplate: z.string().default("Membres: {count}"),
+});
+
+export const starboardConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  channelId: z.string().nullable().default(null),
+  threshold: z.number().int().min(1).default(3),
+});
+
 export const guildConfigSchema = z.object({
   locale: z.enum(["fr", "en"]).default("fr"),
   modLogChannelId: z.string().nullable().default(null),
@@ -68,12 +111,35 @@ export const guildConfigSchema = z.object({
   antiRaid: antiRaidConfigSchema,
   automod: automodConfigSchema,
   verification: verificationConfigSchema,
+  levels: levelsConfigSchema.default({}),
+  economy: economyConfigSchema.default({}),
+  welcome: welcomeConfigSchema.default({}),
+  staff: staffConfigSchema.default({}),
+  channels: channelsConfigSchema.default({}),
+  starboard: starboardConfigSchema.default({}),
 });
 
 export type GuildConfig = z.infer<typeof guildConfigSchema>;
 
 export function parseGuildConfig(raw: unknown): GuildConfig {
-  return guildConfigSchema.parse(raw);
+  const base = defaultGuildConfig();
+  if (!raw || typeof raw !== "object") return base;
+  const r = raw as Record<string, unknown>;
+  return guildConfigSchema.parse({
+    ...base,
+    ...r,
+    features: {
+      ...base.features,
+      ...(typeof r.features === "object" && r.features ? r.features : {}),
+    },
+    tickets: { ...base.tickets, ...(typeof r.tickets === "object" && r.tickets ? r.tickets : {}) },
+    levels: { ...base.levels, ...(typeof r.levels === "object" && r.levels ? r.levels : {}) },
+    economy: { ...base.economy, ...(typeof r.economy === "object" && r.economy ? r.economy : {}) },
+    welcome: { ...base.welcome, ...(typeof r.welcome === "object" && r.welcome ? r.welcome : {}) },
+    staff: { ...base.staff, ...(typeof r.staff === "object" && r.staff ? r.staff : {}) },
+    channels: { ...base.channels, ...(typeof r.channels === "object" && r.channels ? r.channels : {}) },
+    starboard: { ...base.starboard, ...(typeof r.starboard === "object" && r.starboard ? r.starboard : {}) },
+  });
 }
 
 export function defaultGuildConfig(): GuildConfig {

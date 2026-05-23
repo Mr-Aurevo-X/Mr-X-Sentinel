@@ -53,6 +53,9 @@ model Guild {
   shopItems    ShopItem[]
   aiThreads      AiConversation[]
   ticketChannels TicketChannel[]
+  reactionRoles  ReactionRole[]
+  polls          Poll[]
+  giveaways      Giveaway[]
 }
 
 model TicketChannel {
@@ -182,6 +185,9 @@ model UserWallet {
   lastDaily  DateTime?
   lastWork   DateTime?
   lastCrime  DateTime?
+  lastWeekly DateTime?
+  lastMonthly DateTime?
+  robShieldUntil DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
@@ -190,14 +196,29 @@ model UserWallet {
   @@unique([guildId, userId])
 }
 
-model UserXp {
+model UserInventoryItem {
   id        String   @id @default(cuid())
   guildId   String
   userId    String
-  xp        Int      @default(0)
-  level     Int      @default(0)
-  streak    Int      @default(0)
+  itemKey   String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([guildId, userId, itemKey])
+  @@index([guildId, userId])
+}
+
+model UserXp {
+  id             String   @id @default(cuid())
+  guildId        String
+  userId         String
+  xp             Int      @default(0)
+  level          Int      @default(0)
+  streak         Int      @default(1)
+  lastMessageDay    String?
+  levelUpPing       Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
 
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
@@ -238,4 +259,86 @@ model AiMessage {
   createdAt      DateTime @default(now())
 
   conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model ReactionRole {
+  id        String   @id @default(cuid())
+  guildId   String
+  channelId String
+  messageId String
+  emoji     String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, emoji])
+  @@index([guildId])
+}
+
+model Poll {
+  id        String    @id @default(cuid())
+  guildId   String
+  channelId String
+  messageId String
+  question  String
+  options   Json
+  endsAt    DateTime?
+  createdBy String
+  createdAt DateTime  @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId])
+}
+
+model AfkStatus {
+  id        String   @id @default(cuid())
+  guildId   String
+  userId    String
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@unique([guildId, userId])
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  guildId   String
+  userId    String
+  channelId String
+  message   String
+  dueAt     DateTime
+  done      Boolean  @default(false)
+
+  @@index([dueAt, done])
+}
+
+model SuggestionVote {
+  id           String @id @default(cuid())
+  guildId      String
+  messageId    String
+  userId       String
+  vote         Int
+
+  @@unique([guildId, messageId, userId])
+}
+
+model Giveaway {
+  id        String   @id @default(cuid())
+  guildId   String
+  channelId String
+  messageId String?
+  prize     String
+  winners   Int      @default(1)
+  endsAt    DateTime
+  ended     Boolean  @default(false)
+  creatorId String
+  entries   Json     @default("[]")
+  winnerIds Json     @default("[]")
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, ended])
 }

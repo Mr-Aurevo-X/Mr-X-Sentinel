@@ -7,6 +7,8 @@ export const REDIS_KEYS = {
   msgWindow: (guildId: string, userId: string) => `mrx:spam:msg:${guildId}:${userId}`,
   threatScore: (guildId: string, userId: string) => `mrx:threat:${guildId}:${userId}`,
   lockdown: (guildId: string) => `mrx:lockdown:${guildId}`,
+  robCooldown: (guildId: string, thiefId: string, victimId: string) =>
+    `mrx:rob:${guildId}:${thiefId}:${victimId}`,
 } as const;
 
 export const DEFAULT_ANTI_NUKE = {
@@ -52,6 +54,11 @@ export const DEFAULT_AUTOMOD = {
   wordBlacklist: [] as string[],
   blockEveryone: true,
   newAccountHours: 24,
+  blockCaps: true,
+  capsRatioLimit: 0.7,
+  blockZalgo: true,
+  blockExternalUrls: false,
+  blockedUrls: [] as string[],
 };
 
 export const DANGEROUS_PERMISSIONS = [

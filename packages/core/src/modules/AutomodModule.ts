@@ -12,6 +12,15 @@ import {
 } from "../services/MrxBrainService.js";
 
 const INVITE_REGEX = /discord(?:\.gg|\.com\/invite|app\.com\/invite)\/[a-zA-Z0-9]+/gi;
+const URL_REGEX = /https?:\/\/[^\s<]+/gi;
+const ZALGO_REGEX = /[\u0300-\u036f\u0489-\u048f\u1ab0-\u1aff\u1dc0-\u1dff\u20d0-\u20ff\ufe20-\ufe2f]/;
+
+function capsRatio(text: string): number {
+  const letters = text.replace(/[^a-zA-ZÀ-ÿ]/g, "");
+  if (letters.length < 8) return 0;
+  const upper = letters.replace(/[^A-ZÀ-ÖØ-Þ]/g, "").length;
+  return upper / letters.length;
+}
 
 export class AutomodModule {
   constructor(private client: Client) {}
@@ -75,6 +84,29 @@ export class AutomodModule {
       if (word && message.content.toLowerCase().includes(word.toLowerCase())) {
         violations.push(`Mot interdit: ${word}`);
         break;
+      }
+    }
+
+    if (automod.blockCaps && capsRatio(message.content) >= (automod.capsRatioLimit ?? 0.7)) {
+      violations.push("Majuscules excessives");
+    }
+
+    if (automod.blockZalgo && ZALGO_REGEX.test(message.content)) {
+      violations.push("Texte zalgo");
+    }
+
+    const urls = message.content.match(URL_REGEX) ?? [];
+    for (const rawUrl of urls) {
+      const lower = rawUrl.toLowerCase();
+      if (automod.blockExternalUrls && !lower.includes("discord.com") && !lower.includes("discord.gg")) {
+        violations.push("Lien externe");
+        break;
+      }
+      for (const blocked of automod.blockedUrls ?? []) {
+        if (blocked && lower.includes(blocked.toLowerCase())) {
+          violations.push(`URL bloquée: ${blocked}`);
+          break;
+        }
       }
     }
 
