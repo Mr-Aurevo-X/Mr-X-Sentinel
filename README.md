@@ -22,7 +22,6 @@ Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tick
 - [Architecture](#architecture)
 - [Dépannage](#dépannage)
 - [Développement et CI](#développement-et-ci)
-- [Déploiement VPS](#déploiement-vps)
 
 ---
 
@@ -45,7 +44,8 @@ Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tick
 Hub membre : **`/sentinel menu`** ou **`/eco`** (navigation boutons, embeds premium).
 
 Monnaie affichée : **`12 500 $`** (voir [`docs/UI_STYLE_GUIDE.md`](docs/UI_STYLE_GUIDE.md)).  
-Parité legacy : [`docs/LEGACY_FEATURE_MATRIX.md`](docs/LEGACY_FEATURE_MATRIX.md).
+Parité legacy : [`docs/LEGACY_FEATURE_MATRIX.md`](docs/LEGACY_FEATURE_MATRIX.md).  
+Comparaison bots : [`docs/BOT_COMPARISON.md`](docs/BOT_COMPARISON.md).
 
 ---
 
