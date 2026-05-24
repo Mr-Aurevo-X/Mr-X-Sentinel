@@ -56,4 +56,7 @@ jobs:
         run: pnpm exec prisma migrate deploy
         env:
           DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      - run: pnpm test:integration
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       - run: pnpm verify:smoke

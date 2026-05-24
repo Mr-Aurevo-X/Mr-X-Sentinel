@@ -30,6 +30,7 @@ services:
   lavalink:
     image: ghcr.io/lavalink-devs/lavalink:4
     restart: unless-stopped
+    profiles: [music]
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
     depends_on:
@@ -39,9 +40,9 @@ services:
   brain:
     build: { context: ./services/brain, dockerfile: Dockerfile }
     restart: unless-stopped
+    profiles: [brain]
     environment:
       BRAIN_API_KEY: ${BRAIN_API_KEY:-dev-brain-key}
-    profiles: [brain]
     networks: [sentinel]
 
   migrate:

@@ -1,12 +1,19 @@
 # Déploiement VPS — Mr-X Sentinel
 
-Ubuntu 22.04/24.04 · 2 Go RAM min (4 Go si Brain + Lavalink).
+Ubuntu 22.04/24.04.
+
+## Profils RAM
+
+| Profil | Services | RAM indicative |
+|--------|----------|----------------|
+| **core** | postgres, redis, bot, worker, dashboard | 2 Go min |
+| **+ music** | + lavalink | +512 Mo |
+| **+ brain** | + brain (PyTorch) | +1 Go |
 
 ## 1. Docker
 
 ```bash
 curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker "$USER"
 ```
 
 Ou : `bash scripts/vps-bootstrap.sh`
@@ -14,49 +21,44 @@ Ou : `bash scripts/vps-bootstrap.sh`
 ## 2. Configuration
 
 ```bash
-git clone https://github.com/Mr-Aurevo-X/Mr-X-Sentinel.git
-cd Mr-X-Sentinel
 cp .env.production.example .env
 nano .env
 ```
 
 Obligatoire : `DISCORD_TOKEN`, `POSTGRES_PASSWORD`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `DISCORD_CLIENT_SECRET`.
 
+### OAuth dashboard (checklist)
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) → votre app.
+2. OAuth2 → Redirect : `https://VOTRE_DOMAINE/api/auth/callback/discord`
+3. Scopes : `identify`, `guilds`
+4. Copier **Client Secret** dans `DISCORD_CLIENT_SECRET`.
+
 ## 3. Démarrage
 
 ```bash
+# Core uniquement
 docker compose -f docker-compose.prod.yml --env-file .env up -d --build
-curl -s http://localhost:3000/api/health
+
+# Avec musique
+docker compose -f docker-compose.prod.yml --profile music --env-file .env up -d --build
+
+# Avec Brain ML
+docker compose -f docker-compose.prod.yml --profile brain --env-file .env up -d --build
 ```
 
-## 4. Slash commands
+## 4. Vérifications
+
+```bash
+curl -s http://localhost:3000/api/health | jq
+pnpm verify
+pnpm verify:smoke
+```
+
+## 5. Slash commands
 
 ```bash
 pnpm --filter @sentinel/bot deploy-commands
 ```
 
-## 5. HTTPS (Caddy)
-
-```caddy
-dashboard.example.com {
-  reverse_proxy localhost:3000
-}
-```
-
-OAuth redirect : `https://dashboard.example.com/api/auth/callback/discord`
-
-## 6. Vérification
-
-```bash
-pnpm verify
-DATABASE_URL=postgresql://mrx:PASS@localhost:5432/sentinel REDIS_URL=redis://localhost:6379 pnpm verify:smoke
-```
-
-## Brain (optionnel)
-
-```bash
-docker compose -f docker-compose.prod.yml --profile brain up -d brain
-# BRAIN_ENABLED=true puis redémarrer bot
-```
-
-Voir [`README.md`](../README.md) pour le dépannage.
+Voir [`RUNBOOK.md`](RUNBOOK.md), [`SHARDING.md`](SHARDING.md), [`TESTING.md`](TESTING.md).

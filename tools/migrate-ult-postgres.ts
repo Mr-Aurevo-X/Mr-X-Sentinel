@@ -177,7 +177,17 @@ async function main(): Promise<void> {
     });
   }
 
+  const walletCount = await prisma.userWallet.count({ where: { guildId } });
+  const xpCount = await prisma.userXp.count({ where: { guildId } });
+  const warnCount = await prisma.modCase.count({ where: { guildId, type: "WARN" } });
+
+  console.log("Rapport post-migration :");
+  console.log(`  wallets en base: ${walletCount} (source users: ${users.length})`);
+  console.log(`  xp en base: ${xpCount}`);
+  console.log(`  warns en base: ${warnCount} (source: ${warnings.length})`);
+
   await pool.end();
+  await prisma.$disconnect();
   console.log("Migration terminée.");
 }
 

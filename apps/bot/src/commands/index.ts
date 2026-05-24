@@ -259,11 +259,17 @@ async function handleFonctionnement(interaction: ChatInputCommandInteraction) {
     });
     return;
   }
-  const features = (await getGuildConfig(interaction.guild!.id)).features;
   const isPublic = interaction.options.getBoolean("public") ?? false;
-  const embed = buildFonctionnementEmbed(features);
-  const components = buildFonctionnementView(features);
-  await interaction.reply({ embeds: [embed], components, ephemeral: !isPublic });
+  await withCommand(
+    async () => {
+      const features = (await getGuildConfig(interaction.guild!.id)).features;
+      return {
+        embeds: [buildFonctionnementEmbed(features)],
+        components: buildFonctionnementView(features),
+      };
+    },
+    { ephemeral: !isPublic, loadingTitle: "Guide…" },
+  )(interaction, {} as import("discord.js").Client);
 }
 
 async function handleLogs(interaction: ChatInputCommandInteraction) {

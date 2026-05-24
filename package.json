@@ -2,7 +2,7 @@
   "name": "mr-x-sentinel",
   "version": "1.0.0",
   "private": true,
-  "description": "Mr-X Sentinel — plateforme Discord unifiée (sécurité, mod, logs, économie, XP, IA)",
+  "description": "Mr-X Sentinel \u2014 plateforme Discord unifi\u00e9e (s\u00e9curit\u00e9, mod, logs, \u00e9conomie, XP, IA)",
   "scripts": {
     "build": "pnpm -r run build",
     "build:ci": "pnpm --filter @sentinel/shared build && pnpm --filter @sentinel/database build && pnpm --filter @sentinel/ai build && pnpm --filter @sentinel/core build && pnpm --filter @sentinel/bot build && pnpm --filter @sentinel/dashboard build",
@@ -20,7 +20,9 @@
     "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm run build:ci",
     "verify:smoke": "tsx tools/verify-smoke.ts",
     "migrate:legacy": "tsx tools/migrate-legacy-sqlite.ts",
-    "migrate:ult": "tsx tools/migrate-ult-postgres.ts"
+    "migrate:ult": "tsx tools/migrate-ult-postgres.ts",
+    "test:integration": "pnpm --filter @sentinel/database test:integration",
+    "verify:discord": "tsx tools/discord-smoke.ts"
   },
   "devDependencies": {
     "@types/pg": "^8.11.10",
@@ -31,7 +33,9 @@
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.18.0",
+    "better-sqlite3": "^11.7.0",
+    "@types/better-sqlite3": "^7.6.12"
   },
   "engines": {
     "node": ">=20"

@@ -9,8 +9,13 @@ export default defineConfig({
     environment: "node",
     coverage: {
       provider: "v8",
-      include: ["src/engine/ThreatEngine.ts", "src/modules/levels/levelMath.ts"],
-      thresholds: { lines: 50, functions: 50 },
+      include: [
+        "src/engine/ThreatEngine.ts",
+        "src/modules/levels/levelMath.ts",
+        "src/modules/automod/automodText.ts",
+        "src/modules/economy/EconomyService.ts",
+      ],
+      thresholds: { lines: 65, functions: 65 },
     },
   },
   resolve: {

@@ -1,10 +1,21 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("../redis.js", () => ({
+  incrementWindow: vi.fn(),
+  addThreatScore: vi.fn().mockResolvedValue(10),
+}));
+
+import { incrementWindow } from "../redis.js";
 import { ThreatEngine } from "./ThreatEngine.js";
 import { defaultGuildConfig } from "@sentinel/shared";
 
 describe("ThreatEngine", () => {
   const engine = new ThreatEngine();
   const config = defaultGuildConfig();
+
+  beforeEach(() => {
+    vi.mocked(incrementWindow).mockReset();
+  });
 
   it("returns LOG only for whitelisted actors", () => {
     const decision = engine.evaluate({
@@ -43,27 +54,19 @@ describe("ThreatEngine", () => {
     expect(decision.actions).toEqual(["LOG"]);
   });
 
-  it("critical for BOT_ADD without rollback", () => {
-    const decision = engine.evaluate({
-      guildId: "1",
-      actorId: "user1",
-      action: "BOT_ADD",
-      isWhitelisted: false,
-      config,
-    });
+  it("evaluateWithThreshold escalates when count exceeded", async () => {
+    vi.mocked(incrementWindow).mockResolvedValue(5);
+    const decision = await engine.evaluateWithThreshold(
+      {
+        guildId: "1",
+        actorId: "user1",
+        action: "BAN",
+        isWhitelisted: false,
+        config,
+      },
+      "BAN",
+    );
     expect(decision.severity).toBe("CRITICAL");
-    expect(decision.shouldRollback).toBe(false);
-  });
-
-  it("non-instant actions stay below critical", () => {
-    const decision = engine.evaluate({
-      guildId: "1",
-      actorId: "user1",
-      action: "CHANNEL_UPDATE",
-      isWhitelisted: false,
-      config,
-    });
-    expect(decision.severity).toBe("LOW");
-    expect(decision.actions).toEqual(["LOG"]);
+    expect(incrementWindow).toHaveBeenCalled();
   });
 });

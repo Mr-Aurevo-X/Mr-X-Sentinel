@@ -36,7 +36,7 @@
 | deferReply (commandes lentes) | ✅ | - | - | ⚠️ | Partiel |
 | Brain docker + /brain status | - | - | - | ✅ | Done |
 | Tickets reopen/add/remove | ✅ | - | - | ✅ | Done |
-| Migration Ult Postgres | - | - | - | ⚠️ | Script |
+| Migration Ult Postgres | - | - | - | ✅ | Done |
 
 **Légende :** Done = implémenté · Partiel = partiellement · Sentinel+ = absent des legacy.
 

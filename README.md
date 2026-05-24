@@ -432,13 +432,12 @@ Données migrées : config guild (`guild_configs`), wallets/XP (`users`), warns 
 ## Développement et CI
 
 ```bash
-pnpm verify          # lint + test + build:ci
-pnpm verify:smoke    # slash commands, presets, ping DB/Redis si configurés
-pnpm test
-pnpm lint
+pnpm verify          # typecheck + lint + test + build:ci
+pnpm verify:smoke    # slash commands, presets, ping DB/Redis
+pnpm test:integration
 ```
 
-Le workflow GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) exécute `pnpm verify`, migrations Prisma et `pnpm verify:smoke` sur chaque push vers `main`.
+Voir [`docs/TESTING.md`](docs/TESTING.md). CI : [`/.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ---
 
@@ -447,10 +446,9 @@ Le workflow GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.ym
 ```bash
 cp .env.production.example .env
 docker compose -f docker-compose.prod.yml --env-file .env up -d --build
-curl -s http://localhost:3000/api/health
 ```
 
-Guide : [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md) · bootstrap : [`scripts/vps-bootstrap.sh`](scripts/vps-bootstrap.sh).
+Guides : [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md) · [`docs/RUNBOOK.md`](docs/RUNBOOK.md) · [`docs/SHARDING.md`](docs/SHARDING.md).
 
 ---
 

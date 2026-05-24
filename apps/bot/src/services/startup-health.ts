@@ -60,6 +60,16 @@ export async function runStartupHealthChecks(): Promise<void> {
   ];
 
   logger.info("\n" + lines.join("\n"));
+  logger.info(
+    JSON.stringify({
+      event: "sentinel_boot_health",
+      postgres: db,
+      redis,
+      brain,
+      lavalink,
+      ok: db && redis,
+    }),
+  );
   if (!db) logger.error("Postgres inaccessible — vérifie DATABASE_URL et docker compose");
   if (!redis) logger.warn("Redis inaccessible — certaines fonctions sécurité limitées");
   if (!brain) logger.warn(`Brain hors ligne (${BRAIN_URL}) — automod ML réduit`);

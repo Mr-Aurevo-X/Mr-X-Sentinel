@@ -10,18 +10,9 @@ import {
   BRAIN_TOX_THRESHOLD,
   isBrainConfigured,
 } from "../services/MrxBrainService.js";
+import { capsRatio, hasDiscordInvite, hasZalgo } from "./automod/automodText.js";
 
-const INVITE_REGEX = /discord(?:\.gg|\.com\/invite|app\.com\/invite)\/[a-zA-Z0-9]+/gi;
 const URL_REGEX = /https?:\/\/[^\s<]+/gi;
-// eslint-disable-next-line no-misleading-character-class -- combining marks for zalgo detection
-const ZALGO_REGEX = /[\u0300-\u036f\u0489-\u048f\u1ab0-\u1aff\u1dc0-\u1dff\u20d0-\u20ff\ufe20-\ufe2f]/;
-
-function capsRatio(text: string): number {
-  const letters = text.replace(/[^a-zA-ZÀ-ÿ]/g, "");
-  if (letters.length < 8) return 0;
-  const upper = letters.replace(/[^A-ZÀ-ÖØ-Þ]/g, "").length;
-  return upper / letters.length;
-}
 
 export class AutomodModule {
   constructor(private client: Client) {}
@@ -74,7 +65,7 @@ export class AutomodModule {
       violations.push("@everyone interdit");
     }
 
-    if (automod.blockInvites && INVITE_REGEX.test(message.content)) {
+    if (automod.blockInvites && hasDiscordInvite(message.content)) {
       const allowed = automod.allowedInviteGuilds.some((id) =>
         message.content.includes(id),
       );
@@ -92,7 +83,7 @@ export class AutomodModule {
       violations.push("Majuscules excessives");
     }
 
-    if (automod.blockZalgo && ZALGO_REGEX.test(message.content)) {
+    if (automod.blockZalgo && hasZalgo(message.content)) {
       violations.push("Texte zalgo");
     }
 
