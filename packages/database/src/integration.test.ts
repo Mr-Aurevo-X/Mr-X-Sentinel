@@ -5,9 +5,11 @@ const runIntegration = Boolean(process.env.DATABASE_URL);
 
 describe.skipIf(!runIntegration)("database integration", () => {
   const guildId = `test-${Date.now()}`;
+  const userId = `u-${Date.now()}`;
 
   beforeAll(async () => {
     await prisma.$connect();
+    await getOrCreateGuild(guildId);
   });
 
   it("creates guild with default config", async () => {
@@ -18,11 +20,18 @@ describe.skipIf(!runIntegration)("database integration", () => {
   });
 
   it("upserts user wallet", async () => {
-    const wallet = await prisma.userWallet.upsert({
-      where: { guildId_userId: { guildId, userId: "u-test" } },
-      create: { guildId, userId: "u-test", cash: 100, bank: 0 },
+    const created = await prisma.userWallet.upsert({
+      where: { guildId_userId: { guildId, userId } },
+      create: { guildId, userId, cash: 100, bank: 0 },
       update: { cash: 200 },
     });
-    expect(wallet.cash).toBe(200);
+    expect(created.cash).toBe(100);
+
+    const updated = await prisma.userWallet.upsert({
+      where: { guildId_userId: { guildId, userId } },
+      create: { guildId, userId, cash: 0, bank: 0 },
+      update: { cash: 200 },
+    });
+    expect(updated.cash).toBe(200);
   });
 });
