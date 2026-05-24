@@ -50,10 +50,8 @@ function checkTemplatePresets() {
 async function checkPostgres(): Promise<boolean> {
   if (!process.env.DATABASE_URL) return false;
   try {
-    const { PrismaClient } = await import("@prisma/client");
-    const prisma = new PrismaClient();
+    const { prisma } = await import("@sentinel/database");
     await prisma.$queryRaw`SELECT 1`;
-    await prisma.$disconnect();
     return true;
   } catch {
     return false;
