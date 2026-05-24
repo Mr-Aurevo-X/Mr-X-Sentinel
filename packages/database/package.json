@@ -16,10 +16,7 @@
     "typecheck": "tsc --noEmit",
     "generate": "dotenv -e ../../.env -- prisma generate",
     "migrate": "dotenv -e ../../.env -- prisma migrate dev",
-    "push": "dotenv -e ../../.env -- prisma db push",
-    "migrate:deploy": "prisma migrate deploy",
-    "test": "vitest run",
-    "test:integration": "vitest run src/integration.test.ts"
+    "push": "dotenv -e ../../.env -- prisma db push"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
@@ -28,6 +25,7 @@
   "devDependencies": {
     "dotenv-cli": "^11.0.0",
     "prisma": "^6.1.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }
