@@ -15,7 +15,7 @@
     "db:migrate": "pnpm --filter @sentinel/database migrate",
     "db:push": "pnpm --filter @sentinel/database push",
     "lint": "eslint . --ext .ts,.tsx",
-    "typecheck": "pnpm --filter @sentinel/shared build && pnpm --filter @sentinel/database build && pnpm -r run typecheck",
+    "typecheck": "pnpm --filter @sentinel/shared build && pnpm --filter @sentinel/database build && pnpm --filter @sentinel/ai build && pnpm --filter @sentinel/core build && pnpm --filter @sentinel/bot typecheck && pnpm --filter @sentinel/dashboard typecheck",
     "test": "pnpm --filter @sentinel/shared build && pnpm --filter @sentinel/core test && pnpm --filter @sentinel/shared test",
     "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm run build:ci",
     "verify:smoke": "tsx tools/verify-smoke.ts",

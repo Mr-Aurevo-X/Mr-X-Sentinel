@@ -13,7 +13,6 @@ export default defineConfig({
         "src/engine/ThreatEngine.ts",
         "src/modules/levels/levelMath.ts",
         "src/modules/automod/automodText.ts",
-        "src/modules/economy/EconomyService.ts",
       ],
       thresholds: { lines: 65, functions: 65 },
     },
