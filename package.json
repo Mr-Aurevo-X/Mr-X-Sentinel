@@ -17,7 +17,7 @@
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "pnpm --filter @sentinel/shared build && pnpm --filter @sentinel/database build && pnpm -r run typecheck",
     "test": "pnpm --filter @sentinel/shared build && pnpm --filter @sentinel/core test && pnpm --filter @sentinel/shared test",
-    "verify": "pnpm lint && pnpm test && pnpm run build:ci",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm run build:ci",
     "verify:smoke": "tsx tools/verify-smoke.ts",
     "migrate:legacy": "tsx tools/migrate-legacy-sqlite.ts",
     "migrate:ult": "tsx tools/migrate-ult-postgres.ts"
