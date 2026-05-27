@@ -71,12 +71,25 @@ https://discord.com/api/oauth2/authorize?client_id=1507473175498457129&permissio
 
 ---
 
+## Emplacement des dépôts (disque local)
+
+| Dépôt | Chemin typique |
+|--------|----------------|
+| **Mr-X Sentinel** (ce projet) | `C:\Users\aurel\Desktop\Dev\Mr-X-Sentinel` |
+| Bots legacy (référence Shadow / Bot / Ult) | `C:\Users\aurel\Desktop\Dev\BOT DISCORD\` |
+
+Ouvre le dossier **Mr-X-Sentinel** comme racine Cursor/VS Code (pas l’ancien `Desktop\BOT DISCORD` seul).
+
+Après un déplacement de dossier : `pnpm install` puis `pnpm db:generate` (régénère le client Prisma).
+
+---
+
 ## Installation
 
 ### Windows (PowerShell)
 
 ```powershell
-cd C:\Users\aurel\Desktop\Mr-X-Sentinel
+cd C:\Users\aurel\Desktop\Dev\Mr-X-Sentinel
 Copy-Item .env.example .env
 # Éditer .env — voir section Configuration
 
