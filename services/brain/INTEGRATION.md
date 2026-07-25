@@ -1,29 +1,20 @@
-# Intégration MrXBrain — tous les bots Mr-X
+# Intégration Brain — Mr-X-Sentinel uniquement
 
-## Prérequis
+Brain est le sidecar ML de **Sentinel** (`services/brain`), exposé en HTTP.
 
-1. Démarrer le service : `python start.py` (port **8765** par défaut)
-2. Même clé dans `.env` du bot et de Mr-X-Brain : `BRAIN_API_KEY`
+## Démarrage
 
-## Bots connectés
+- Docker : `docker compose --profile brain up -d` (voir `docker-compose.yml`, build `./services/brain`)
+- Ou local : `cd services/brain && python start.py` (port **8765**)
 
-| Bot | Fichier | Comportement |
-|-----|---------|--------------|
-| **Mr-X-Bot** | `cogs/ml_brain.py` | Tous les messages + `/brain` |
-| **Mr-X-Shadow** | `cogs/ml_brain.py` | Tous les messages + `/brain` |
-| **Mr-X-Ai** | `src/services/brain.ts` | Mentions / réponses au bot |
-| **Mr-X-Security** | `packages/core/.../MrxBrainService.ts` | Automod (spam/tox en plus des règles) |
-| **Mr-X-Ult** | `brain/MrXBrainClient.kt` | AutoMod (spam → delete, tox → warn) |
-
-## Variables `.env` communes
+## Variables Sentinel `.env`
 
 ```env
-BRAIN_URL=http://localhost:8765
+BRAIN_URL=http://127.0.0.1:8765
 BRAIN_API_KEY=changeme
+BRAIN_ENABLED=true
 ```
 
-Optionnel : `BRAIN_ENABLED=false` (Security, Ult) pour désactiver sans retirer l’URL.
+En prod compose : `BRAIN_URL=http://brain:8765`.
 
-## VPS
-
-Sur le même serveur : `BRAIN_URL=http://127.0.0.1:8765`. Ne pas exposer le port 8765 sur Internet.
+Les anciens bots (Bot, Shadow, Ai, Security, Ult) sont retirés — seul Sentinel consomme Brain.

@@ -8,7 +8,7 @@ import {
   logService,
   type ModerationService,
 } from "@sentinel/core";
-import { prisma, getGuildConfig } from "@sentinel/database";
+import { prisma, getGuildConfig, updateGuildConfig } from "@sentinel/database";
 import { chatCompletion, resetConversation } from "@sentinel/ai";
 import { templateService } from "@sentinel/core";
 import { buildFonctionnementEmbed, buildFonctionnementView } from "./fonctionnement.js";
@@ -41,6 +41,8 @@ import {
   handleLvlInfo,
 } from "./handlers/levels.js";
 import { handleTemplatePanel } from "./handlers/templates.js";
+import { handleMusic } from "./handlers/music.js";
+import { handleBirthday, handleCounting, handleTempVc } from "./handlers/community-extra.js";
 import {
   handleAdmin,
   handleBrain,
@@ -62,7 +64,6 @@ import {
   handleServerInfo,
   handleAvatar,
 } from "./handlers/info.js";
-import { handleMusic } from "./handlers/music.js";
 import {
   handleChannel,
   handleSetspam,
@@ -140,6 +141,10 @@ export async function handleInteraction(
   else if (name === "rank") await run(handleRank, { module: "levels", loadingTitle: "Chargement du profil…" });
   else if (name === "chat") await handleChat(interaction);
   else if (name === "play") await run((i, c) => handlePlayMusic(i, c), { module: "music", ephemeral: false, loadingTitle: "Recherche…" });
+  else if (name === "music") await run((i, c) => handleMusic(i, c), { module: "music", defer: false });
+  else if (name === "birthday") await run(() => handleBirthday(interaction), { module: "community" });
+  else if (name === "tempvc") await run(() => handleTempVc(interaction), { module: "community" });
+  else if (name === "counting") await run(() => handleCounting(interaction), { module: "community" });
   else if (name === "config") await run(handleConfig, { defer: false });
   else if (name === "admin") await run(handleAdmin, { defer: true });
   else if (name === "ticket") await run((i, c) => handleTicket(i, c), { module: "tickets" });
@@ -176,7 +181,6 @@ export async function handleInteraction(
   else if (name === "stats") await run(handleStats, { defer: false });
   else if (name === "serverinfo") await run(handleServerInfo, { defer: false });
   else if (name === "avatar") await run(handleAvatar, { defer: false });
-  else if (name === "music") await run((i, c) => handleMusic(i, c), { module: "music", defer: false });
   else if (name === "afk") await run(handleAfk, { defer: false });
   else if (name === "reminder") await run(handleReminder, { defer: false });
   else if (name === "autosetup") await run((i, c) => handleAutosetup(i, c), { defer: true, loadingTitle: "Setup…" });
@@ -424,9 +428,24 @@ async function handleBackup(interaction: ChatInputCommandInteraction) {
 async function handleChat(interaction: ChatInputCommandInteraction) {
   const sub = interaction.options.getSubcommand();
   if (sub === "reset") {
-    await resetConversation(interaction.user.id, interaction.guild!.id);
+    await resetConversation(interaction.user.id, interaction.guild!.id, {
+      channelId: interaction.channelId,
+      threadId: interaction.channel?.isThread() ? interaction.channel.id : null,
+    });
     await interaction.reply({
       embeds: [successEmbed("IA", "Conversation réinitialisée.")],
+      ephemeral: true,
+    });
+    return;
+  }
+  if (sub === "mode") {
+    const context = interaction.options.getString("context", true) as "user" | "channel" | "thread";
+    const cfg = await getGuildConfig(interaction.guild!.id);
+    await updateGuildConfig(interaction.guild!.id, {
+      ai: { ...cfg.ai, contextMode: context },
+    });
+    await interaction.reply({
+      embeds: [successEmbed("IA", `Mode de contexte : **${context}**.`)],
       ephemeral: true,
     });
     return;
@@ -434,7 +453,10 @@ async function handleChat(interaction: ChatInputCommandInteraction) {
   await withCommand(
     async () => {
       const prompt = interaction.options.getString("prompt", true);
-      const reply = await chatCompletion(interaction.user.id, interaction.guild!.id, prompt);
+      const reply = await chatCompletion(interaction.user.id, interaction.guild!.id, prompt, {
+        channelId: interaction.channelId,
+        threadId: interaction.channel?.isThread() ? interaction.channel.id : null,
+      });
       return { embeds: [buildSimpleEmbed("Mr-X IA", reply.slice(0, 4000))] };
     },
     { module: "ai", loadingTitle: "Réflexion…" },

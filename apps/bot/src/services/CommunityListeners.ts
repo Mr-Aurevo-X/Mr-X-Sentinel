@@ -1,19 +1,27 @@
 import {
   ChannelType,
   Events,
+  PermissionFlagsBits,
   type Client,
   type Message,
   type MessageReaction,
   type TextChannel,
+  type VoiceState,
 } from "discord.js";
-import { getGuildConfig, prisma } from "@sentinel/database";
+import { getGuildConfig, updateGuildConfig, prisma } from "@sentinel/database";
+import { chatCompletion } from "@sentinel/ai";
 import { buildSimpleEmbed } from "../ui/embeds.js";
+
+/** channelId -> owner userId for temp VCs created by the bot */
+const tempVoiceOwned = new Map<string, string>();
 
 export function registerCommunityListeners(client: Client): void {
   client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot || !message.guild) return;
     await handleSpamRelay(message);
     await handleAfkMentions(message);
+    await handleCounting(message);
+    await handleAiMention(message, client);
   });
 
   client.on(Events.GuildMemberAdd, async (member) => {
@@ -26,8 +34,13 @@ export function registerCommunityListeners(client: Client): void {
     await handleStarboard(reaction as MessageReaction, client);
   });
 
+  client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+    await handleTempVoice(oldState, newState);
+  });
+
   setInterval(() => {
     void tickReminders(client);
+    void tickBirthdays(client);
   }, 30_000);
 }
 
@@ -91,6 +104,112 @@ async function handleAfkMentions(message: Message): Promise<void> {
   }
 }
 
+async function handleCounting(message: Message): Promise<void> {
+  const cfg = await getGuildConfig(message.guild!.id);
+  if (!cfg.counting.channelId || message.channelId !== cfg.counting.channelId) return;
+  const content = message.content.trim();
+  if (!/^\d+$/.test(content)) {
+    await message.delete().catch(() => undefined);
+    return;
+  }
+  const n = Number(content);
+  if (message.author.id === cfg.counting.lastUserId || n !== cfg.counting.nextNumber) {
+    await message.react("❌").catch(() => undefined);
+    const high = Math.max(cfg.counting.highScore, cfg.counting.nextNumber - 1);
+    await updateGuildConfig(message.guild!.id, {
+      counting: {
+        ...cfg.counting,
+        nextNumber: 1,
+        lastUserId: null,
+        highScore: high,
+      },
+    });
+    if (message.channel.isTextBased() && !message.channel.isDMBased()) {
+      await message.channel
+        .send(`Compteur cassé par <@${message.author.id}> ! Record : **${high}**. Recommencez à **1**.`)
+        .catch(() => undefined);
+    }
+    return;
+  }
+  await message.react("✅").catch(() => undefined);
+  const next = n + 1;
+  await updateGuildConfig(message.guild!.id, {
+    counting: {
+      ...cfg.counting,
+      nextNumber: next,
+      lastUserId: message.author.id,
+      highScore: Math.max(cfg.counting.highScore, n),
+    },
+  });
+}
+
+async function handleAiMention(message: Message, client: Client): Promise<void> {
+  const cfg = await getGuildConfig(message.guild!.id);
+  if (!cfg.features.ai || !cfg.ai.mentionEnabled) return;
+  const me = client.user;
+  if (!me) return;
+  const mentioned = message.mentions.users.has(me.id);
+  const repliedToBot =
+    !!message.reference?.messageId &&
+    (await message.fetchReference().catch(() => null))?.author?.id === me.id;
+  if (!mentioned && !repliedToBot) return;
+  const prompt = message.content.replace(new RegExp(`<@!?${me.id}>`, "g"), "").trim();
+  if (!prompt) return;
+  const threadId = message.channel.isThread() ? message.channel.id : null;
+  const reply = await chatCompletion(message.author.id, message.guild!.id, prompt, {
+    channelId: message.channelId,
+    threadId,
+  });
+  const chunks = reply.match(/[\s\S]{1,1900}/g) ?? [reply.slice(0, 1900)];
+  for (const chunk of chunks) {
+    await message.reply({ content: chunk }).catch(() => undefined);
+  }
+}
+
+async function handleTempVoice(oldState: VoiceState, newState: VoiceState): Promise<void> {
+  const guild = newState.guild ?? oldState.guild;
+  if (!guild) return;
+  const cfg = await getGuildConfig(guild.id);
+  const hubId = cfg.tempVoice.hubChannelId;
+  if (!hubId) return;
+
+  // Create temp VC when joining hub
+  if (newState.channelId === hubId && newState.member && !newState.member.user.bot) {
+    const parent = newState.channel?.parentId ?? undefined;
+    const created = await guild.channels
+      .create({
+        name: `🔊 ${newState.member.displayName}`.slice(0, 100),
+        type: ChannelType.GuildVoice,
+        parent,
+        permissionOverwrites: [
+          {
+            id: newState.member.id,
+            allow: [
+              PermissionFlagsBits.ManageChannels,
+              PermissionFlagsBits.MoveMembers,
+              PermissionFlagsBits.Connect,
+            ],
+          },
+        ],
+      })
+      .catch(() => null);
+    if (created) {
+      tempVoiceOwned.set(created.id, newState.member.id);
+      await newState.member.voice.setChannel(created.id).catch(() => undefined);
+    }
+  }
+
+  // Delete empty temp VCs
+  const leftId = oldState.channelId;
+  if (leftId && tempVoiceOwned.has(leftId) && leftId !== hubId) {
+    const ch = oldState.channel;
+    if (ch && ch.members.size === 0) {
+      tempVoiceOwned.delete(leftId);
+      await ch.delete("Temp VC vide").catch(() => undefined);
+    }
+  }
+}
+
 async function handleStarboard(reaction: MessageReaction, client: Client): Promise<void> {
   if (!reaction.message.guild) return;
   if (reaction.partial) await reaction.fetch().catch(() => undefined);
@@ -135,5 +254,32 @@ export async function tickReminders(client: Client): Promise<void> {
         .catch(() => undefined);
     }
     await prisma.reminder.update({ where: { id: r.id }, data: { done: true } });
+  }
+}
+
+let lastBirthdayDay = "";
+
+export async function tickBirthdays(client: Client): Promise<void> {
+  const now = new Date();
+  const key = `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`;
+  if (key === lastBirthdayDay) return;
+  // run once per day around noon UTC window when interval hits
+  if (now.getUTCHours() !== 12) return;
+  lastBirthdayDay = key;
+  const mm = String(now.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(now.getUTCDate()).padStart(2, "0");
+  const stamp = `${mm}-${dd}`;
+
+  for (const guild of client.guilds.cache.values()) {
+    const cfg = await getGuildConfig(guild.id);
+    if (!cfg.birthday.channelId) continue;
+    const hits = Object.entries(cfg.birthday.entries).filter(([, v]) => v === stamp);
+    if (!hits.length) continue;
+    const ch = await guild.channels.fetch(cfg.birthday.channelId).catch(() => null);
+    if (!ch?.isTextBased() || ch.isDMBased()) continue;
+    const mentions = hits.map(([uid]) => `<@${uid}>`).join(" ");
+    await ch
+      .send({ content: `🎂 Joyeux anniversaire ${mentions} !` })
+      .catch(() => undefined);
   }
 }

@@ -100,6 +100,27 @@ export const starboardConfigSchema = z.object({
   threshold: z.number().int().min(1).default(3),
 });
 
+export const birthdayConfigSchema = z.object({
+  channelId: z.string().nullable().default(null),
+  entries: z.record(z.string(), z.string()).default({}),
+});
+
+export const tempVoiceConfigSchema = z.object({
+  hubChannelId: z.string().nullable().default(null),
+});
+
+export const countingConfigSchema = z.object({
+  channelId: z.string().nullable().default(null),
+  nextNumber: z.number().int().min(1).default(1),
+  lastUserId: z.string().nullable().default(null),
+  highScore: z.number().int().min(0).default(0),
+});
+
+export const aiConfigSchema = z.object({
+  contextMode: z.enum(["user", "channel", "thread"]).default("user"),
+  mentionEnabled: z.boolean().default(true),
+});
+
 export const guildConfigSchema = z.object({
   locale: z.enum(["fr", "en"]).default("fr"),
   modLogChannelId: z.string().nullable().default(null),
@@ -117,6 +138,10 @@ export const guildConfigSchema = z.object({
   staff: staffConfigSchema.default({}),
   channels: channelsConfigSchema.default({}),
   starboard: starboardConfigSchema.default({}),
+  birthday: birthdayConfigSchema.default({}),
+  tempVoice: tempVoiceConfigSchema.default({}),
+  counting: countingConfigSchema.default({}),
+  ai: aiConfigSchema.default({}),
 });
 
 export type GuildConfig = z.infer<typeof guildConfigSchema>;
@@ -139,6 +164,10 @@ export function parseGuildConfig(raw: unknown): GuildConfig {
     staff: { ...base.staff, ...(typeof r.staff === "object" && r.staff ? r.staff : {}) },
     channels: { ...base.channels, ...(typeof r.channels === "object" && r.channels ? r.channels : {}) },
     starboard: { ...base.starboard, ...(typeof r.starboard === "object" && r.starboard ? r.starboard : {}) },
+    birthday: { ...base.birthday, ...(typeof r.birthday === "object" && r.birthday ? r.birthday : {}) },
+    tempVoice: { ...base.tempVoice, ...(typeof r.tempVoice === "object" && r.tempVoice ? r.tempVoice : {}) },
+    counting: { ...base.counting, ...(typeof r.counting === "object" && r.counting ? r.counting : {}) },
+    ai: { ...base.ai, ...(typeof r.ai === "object" && r.ai ? r.ai : {}) },
   });
 }
 

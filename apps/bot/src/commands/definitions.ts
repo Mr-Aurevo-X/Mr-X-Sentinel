@@ -208,7 +208,23 @@ export const commands = [
         .setDescription("Envoyer un message à l'IA")
         .addStringOption((o) => o.setName("prompt").setDescription("Votre question").setRequired(true)),
     )
-    .addSubcommand((s) => s.setName("reset").setDescription("Réinitialiser la conversation")),
+    .addSubcommand((s) => s.setName("reset").setDescription("Réinitialiser la conversation"))
+    .addSubcommand((s) =>
+      s
+        .setName("mode")
+        .setDescription("Mode de contexte IA")
+        .addStringOption((o) =>
+          o
+            .setName("context")
+            .setDescription("user | channel | thread")
+            .setRequired(true)
+            .addChoices(
+              { name: "Par utilisateur", value: "user" },
+              { name: "Par salon", value: "channel" },
+              { name: "Par fil", value: "thread" },
+            ),
+        ),
+    ),
 
   new SlashCommandBuilder()
     .setName("play")
@@ -760,7 +776,93 @@ export const commands = [
         .addIntegerOption((o) =>
           o.setName("level").setDescription("0-200").setRequired(true).setMinValue(0).setMaxValue(200),
         ),
+    )
+    .addSubcommand((s) =>
+      s
+        .setName("loop")
+        .setDescription("Boucle")
+        .addStringOption((o) =>
+          o
+            .setName("mode")
+            .setDescription("off | track | queue")
+            .setRequired(true)
+            .addChoices(
+              { name: "Off", value: "off" },
+              { name: "Piste", value: "track" },
+              { name: "File", value: "queue" },
+            ),
+        ),
+    )
+    .addSubcommand((s) =>
+      s
+        .setName("seek")
+        .setDescription("Aller à une position")
+        .addIntegerOption((o) =>
+          o.setName("seconds").setDescription("Secondes").setRequired(true).setMinValue(0),
+        ),
+    )
+    .addSubcommand((s) => s.setName("shuffle").setDescription("Mélanger la file"))
+    .addSubcommand((s) =>
+      s
+        .setName("247")
+        .setDescription("Rester en vocal 24/7")
+        .addBooleanOption((o) => o.setName("enabled").setDescription("Activer").setRequired(true)),
     ),
+
+  new SlashCommandBuilder()
+    .setName("birthday")
+    .setDescription("Anniversaires")
+    .addSubcommand((s) =>
+      s
+        .setName("set")
+        .setDescription("Enregistrer ton anniversaire")
+        .addIntegerOption((o) =>
+          o.setName("day").setDescription("Jour 1-31").setRequired(true).setMinValue(1).setMaxValue(31),
+        )
+        .addIntegerOption((o) =>
+          o.setName("month").setDescription("Mois 1-12").setRequired(true).setMinValue(1).setMaxValue(12),
+        ),
+    )
+    .addSubcommand((s) =>
+      s
+        .setName("channel")
+        .setDescription("[Admin] Salon des annonces")
+        .addChannelOption((o) =>
+          o.setName("channel").setDescription("Salon texte").addChannelTypes(ChannelType.GuildText).setRequired(true),
+        ),
+    )
+    .addSubcommand((s) => s.setName("remove").setDescription("Supprimer ton anniversaire")),
+
+  new SlashCommandBuilder()
+    .setName("tempvc")
+    .setDescription("Salons vocaux temporaires")
+    .addSubcommand((s) =>
+      s
+        .setName("hub")
+        .setDescription("[Admin] Définir le salon générateur")
+        .addChannelOption((o) =>
+          o
+            .setName("channel")
+            .setDescription("Salon vocal hub")
+            .addChannelTypes(ChannelType.GuildVoice)
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((s) => s.setName("off").setDescription("[Admin] Désactiver temp VC")),
+
+  new SlashCommandBuilder()
+    .setName("counting")
+    .setDescription("Jeu du compteur")
+    .addSubcommand((s) =>
+      s
+        .setName("setup")
+        .setDescription("[Admin] Salon du compteur")
+        .addChannelOption((o) =>
+          o.setName("channel").setDescription("Salon texte").addChannelTypes(ChannelType.GuildText).setRequired(true),
+        ),
+    )
+    .addSubcommand((s) => s.setName("off").setDescription("[Admin] Désactiver"))
+    .addSubcommand((s) => s.setName("status").setDescription("Voir le score")),
 
   new SlashCommandBuilder()
     .setName("afk")

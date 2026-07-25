@@ -15,8 +15,12 @@ const LAVALINK_HOST = process.env.LAVALINK_HOST ?? "localhost";
 const LAVALINK_PORT = process.env.LAVALINK_PORT ?? "2333";
 const LAVALINK_PASSWORD = process.env.LAVALINK_PASSWORD ?? "youshallnotpass";
 
+export type LoopMode = "off" | "track" | "queue";
+
 export class MusicManager {
   kazagumo: Kazagumo | null = null;
+  private stay247 = new Map<string, boolean>();
+  private loopMode = new Map<string, LoopMode>();
 
   async init(client: DjsClient): Promise<void> {
     const nodes = [
@@ -40,12 +44,78 @@ export class MusicManager {
       nodes,
     );
     this.kazagumo.on("playerEnd", (player) => {
-      if (!player.queue.length) player.destroy();
+      const guildId = player.guildId;
+      const loop = this.loopMode.get(guildId) ?? "off";
+      if (loop === "track" && player.queue.current) {
+        void player.play(player.queue.current);
+        return;
+      }
+      if (loop === "queue" && player.queue.current) {
+        player.queue.add(player.queue.current);
+      }
+      if (player.queue.length) {
+        void player.play();
+        return;
+      }
+      if (this.stay247.get(guildId)) {
+        return;
+      }
+      player.destroy();
     });
   }
 
   getPlayer(guildId: string): KazagumoPlayer | undefined {
     return this.kazagumo?.players.get(guildId);
+  }
+
+  set247(guildId: string, enabled: boolean): void {
+    this.stay247.set(guildId, enabled);
+  }
+
+  get247(guildId: string): boolean {
+    return this.stay247.get(guildId) ?? false;
+  }
+
+  setLoop(guildId: string, mode: LoopMode): void {
+    this.loopMode.set(guildId, mode);
+    const player = this.getPlayer(guildId);
+    if (player && typeof (player as { setLoop?: (m: string) => void }).setLoop === "function") {
+      const map = { off: "none", track: "track", queue: "queue" } as const;
+      try {
+        (player as { setLoop: (m: string) => void }).setLoop(map[mode]);
+      } catch {
+        /* kazagumo version may differ */
+      }
+    }
+  }
+
+  getLoop(guildId: string): LoopMode {
+    return this.loopMode.get(guildId) ?? "off";
+  }
+
+  shuffle(guildId: string): number {
+    const player = this.getPlayer(guildId);
+    if (!player) return 0;
+    const q = player.queue as unknown as { shuffle?: () => void; length: number };
+    if (typeof q.shuffle === "function") {
+      q.shuffle();
+      return q.length;
+    }
+    // fallback: manual shuffle via array if exposed
+    const tracks = [...player.queue];
+    for (let i = tracks.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tracks[i], tracks[j]] = [tracks[j]!, tracks[i]!];
+    }
+    player.queue.clear();
+    for (const t of tracks) player.queue.add(t);
+    return tracks.length;
+  }
+
+  seek(guildId: string, positionMs: number): void {
+    const player = this.getPlayer(guildId);
+    if (!player) throw new Error("Aucune lecture.");
+    player.seek(Math.max(0, positionMs));
   }
 
   playerControls(guildId: string): ActionRowBuilder<ButtonBuilder>[] {
@@ -66,6 +136,10 @@ export class MusicManager {
         new ButtonBuilder()
           .setCustomId(customId("music", "queue", guildId))
           .setLabel("Queue")
+          .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+          .setCustomId(customId("music", "shuffle", guildId))
+          .setLabel("Shuffle")
           .setStyle(ButtonStyle.Secondary),
       ),
     ];

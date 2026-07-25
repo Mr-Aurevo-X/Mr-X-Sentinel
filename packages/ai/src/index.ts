@@ -1,25 +1,48 @@
 import { prisma } from "@sentinel/database";
+import { getGuildConfig } from "@sentinel/database";
 
 const API_KEY = process.env.OPENAI_API_KEY ?? "";
 const BASE_URL = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
 const MODEL = process.env.AI_MODEL ?? "gpt-4o-mini";
 
+export type AiContextMode = "user" | "channel" | "thread";
+
+function sessionKey(
+  mode: AiContextMode,
+  userId: string,
+  guildId: string | null,
+  channelId?: string | null,
+  threadId?: string | null,
+): string {
+  if (mode === "channel" && channelId) return `ch:${guildId}:${channelId}`;
+  if (mode === "thread" && threadId) return `th:${guildId}:${threadId}`;
+  return `u:${guildId}:${userId}`;
+}
+
 export async function chatCompletion(
   userId: string,
   guildId: string | null,
   prompt: string,
+  opts?: { channelId?: string | null; threadId?: string | null },
 ): Promise<string> {
   if (!API_KEY) {
     return "IA non configurée : définis OPENAI_API_KEY dans .env.";
   }
 
+  let mode: AiContextMode = "user";
+  if (guildId) {
+    const cfg = await getGuildConfig(guildId);
+    mode = cfg.ai.contextMode;
+  }
+  const key = sessionKey(mode, userId, guildId, opts?.channelId, opts?.threadId);
+
   let conv = await prisma.aiConversation.findFirst({
-    where: { userId, guildId: guildId ?? undefined },
+    where: { userId: key, guildId: guildId ?? undefined },
     orderBy: { updatedAt: "desc" },
   });
   if (!conv) {
     conv = await prisma.aiConversation.create({
-      data: { userId, guildId: guildId ?? undefined },
+      data: { userId: key, guildId: guildId ?? undefined },
     });
   }
 
@@ -69,8 +92,18 @@ export async function chatCompletion(
   return reply;
 }
 
-export async function resetConversation(userId: string, guildId: string | null): Promise<void> {
+export async function resetConversation(
+  userId: string,
+  guildId: string | null,
+  opts?: { channelId?: string | null; threadId?: string | null },
+): Promise<void> {
+  let mode: AiContextMode = "user";
+  if (guildId) {
+    const cfg = await getGuildConfig(guildId);
+    mode = cfg.ai.contextMode;
+  }
+  const key = sessionKey(mode, userId, guildId, opts?.channelId, opts?.threadId);
   await prisma.aiConversation.deleteMany({
-    where: { userId, guildId: guildId ?? undefined },
+    where: { userId: key, guildId: guildId ?? undefined },
   });
 }

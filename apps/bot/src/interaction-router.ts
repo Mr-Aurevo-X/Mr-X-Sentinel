@@ -717,6 +717,14 @@ export async function handleComponent(
       if (parsed.action === "queue") {
         const q = player.queue.map((t) => t.title).slice(0, 10).join("\n") || "(vide)";
         await interaction.reply({ embeds: [buildSimpleEmbed("File d'attente", q)], ephemeral: true });
+        return;
+      }
+      if (parsed.action === "shuffle") {
+        const n = musicManager.shuffle(guildIdMusic);
+        await interaction.reply({
+          embeds: [successEmbed("Shuffle", `File mélangée (**${n}**).`)],
+          ephemeral: true,
+        });
       }
       return;
     }
