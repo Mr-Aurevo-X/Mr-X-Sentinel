@@ -13,7 +13,6 @@ import type { Client as DjsClient } from "discord.js";
 
 const LAVALINK_HOST = process.env.LAVALINK_HOST ?? "localhost";
 const LAVALINK_PORT = process.env.LAVALINK_PORT ?? "2333";
-const LAVALINK_PASSWORD = process.env.LAVALINK_PASSWORD ?? "youshallnotpass";
 
 export type LoopMode = "off" | "track" | "queue";
 
@@ -23,11 +22,15 @@ export class MusicManager {
   private loopMode = new Map<string, LoopMode>();
 
   async init(client: DjsClient): Promise<void> {
+    const password = process.env.LAVALINK_PASSWORD;
+    if (!password) {
+      throw new Error("LAVALINK_PASSWORD is required (no default)");
+    }
     const nodes = [
       {
         name: "main",
         url: `${LAVALINK_HOST}:${LAVALINK_PORT}`,
-        auth: LAVALINK_PASSWORD,
+        auth: password,
         secure: false,
       },
     ];
@@ -35,6 +38,7 @@ export class MusicManager {
       {
         defaultSearchEngine: "youtube",
         plugins: [],
+        // keep existing options below
         send: (guildId, payload) => {
           const guild = client.guilds.cache.get(guildId);
           if (guild) guild.shard.send(payload);

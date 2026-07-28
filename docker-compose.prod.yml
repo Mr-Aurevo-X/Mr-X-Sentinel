@@ -31,6 +31,8 @@ services:
     image: ghcr.io/lavalink-devs/lavalink:4
     restart: unless-stopped
     profiles: [music]
+    environment:
+      LAVALINK_SERVER_PASSWORD: ${LAVALINK_PASSWORD:?Set LAVALINK_PASSWORD}
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
     depends_on:
@@ -69,7 +71,7 @@ services:
       BRAIN_ENABLED: ${BRAIN_ENABLED:-false}
       LAVALINK_HOST: lavalink
       LAVALINK_PORT: "2333"
-      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD:-youshallnotpass}
+      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD:?Set LAVALINK_PASSWORD}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       postgres: { condition: service_healthy }

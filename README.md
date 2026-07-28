@@ -136,7 +136,7 @@ pnpm dev:bot
 | `AI_MODEL` | IA | ex. `llama-3.3-70b-versatile` |
 | `LAVALINK_HOST` | Musique | `localhost` |
 | `LAVALINK_PORT` | Musique | `2333` |
-| `LAVALINK_PASSWORD` | Musique | `youshallnotpass` (voir `lavalink/application.yml`) |
+| `LAVALINK_PASSWORD` | Musique | **requis** (pas de défaut) |
 | `BRAIN_URL` | Non | `http://127.0.0.1:8765` |
 | `BRAIN_API_KEY` | Non | Clé locale Brain |
 | `BRAIN_ENABLED` | Non | `true` / `false` |

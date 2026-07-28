@@ -19,8 +19,10 @@ export function startRestoreWorker(getClient: () => Client): Worker {
       const guild = await client.guilds.fetch(guildId).catch(() => null);
       if (!guild) throw new Error("Guild not found");
 
-      const snap = await prisma.snapshot.findUnique({ where: { id: snapshotId } });
-      if (!snap) throw new Error("Snapshot not found");
+      const snap = await prisma.snapshot.findFirst({
+        where: { id: snapshotId, guildId },
+      });
+      if (!snap) throw new Error("Snapshot not found for this guild");
 
       const payload = snap.payload as unknown as SnapshotPayload;
       await restoreFromSnapshot(guild, payload);
