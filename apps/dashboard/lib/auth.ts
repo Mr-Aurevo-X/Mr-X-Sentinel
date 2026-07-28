@@ -1,5 +1,9 @@
 import type { NextAuthOptions } from "next-auth";
+import { getServerSession } from "next-auth";
+import { getToken } from "next-auth/jwt";
 import DiscordProvider from "next-auth/providers/discord";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,7 +20,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as { id?: string }).id = token.sub;
       }
-      (session as { accessToken?: string }).accessToken = token.accessToken as string;
+      // accessToken stays JWT/server-only — never mirror to client session
       return session;
     },
     async jwt({ token, account }) {
@@ -40,6 +44,20 @@ export interface DiscordGuild {
   permissions: string;
 }
 
+export async function getDiscordAccessToken(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const token = await getToken({
+    req: {
+      headers: {
+        cookie: cookieStore.toString(),
+      },
+    } as Parameters<typeof getToken>[0]["req"],
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+  const access = token?.accessToken;
+  return typeof access === "string" && access.length > 0 ? access : null;
+}
+
 export async function fetchManagedGuilds(accessToken: string): Promise<DiscordGuild[]> {
   const res = await fetch("https://discord.com/api/v10/users/@me/guilds", {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -51,4 +69,31 @@ export async function fetchManagedGuilds(accessToken: string): Promise<DiscordGu
     const perms = BigInt(g.permissions);
     return g.owner || (perms & MANAGE_GUILD) === MANAGE_GUILD;
   });
+}
+
+/** Returns null if OK, otherwise a NextResponse 401/403. */
+export async function assertCanManageGuild(guildId: string): Promise<NextResponse | null> {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const accessToken = await getDiscordAccessToken();
+  if (!accessToken) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const guilds = await fetchManagedGuilds(accessToken);
+  if (!guilds.some((g) => g.id === guildId)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return null;
+}
+
+/** For server components / pages — redirect-friendly boolean. */
+export async function canManageGuild(guildId: string): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session) return false;
+  const accessToken = await getDiscordAccessToken();
+  if (!accessToken) return false;
+  const guilds = await fetchManagedGuilds(accessToken);
+  return guilds.some((g) => g.id === guildId);
 }

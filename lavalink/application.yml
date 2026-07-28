@@ -1,10 +1,10 @@
 server:
   port: 2333
-  address: 0.0.0.0
+  address: 127.0.0.1
 
 lavalink:
   server:
-    password: "youshallnotpass"
+    password: "${LAVALINK_SERVER_PASSWORD:youshallnotpass}"
     sources:
       youtube: true
       bandcamp: true

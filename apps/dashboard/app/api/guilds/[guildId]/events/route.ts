@@ -1,15 +1,14 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
+import { assertCanManageGuild } from "@/lib/auth";
 import { prisma } from "@sentinel/database";
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ guildId: string }> },
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { guildId } = await params;
+  const denied = await assertCanManageGuild(guildId);
+  if (denied) return denied;
 
   const events = await prisma.securityEvent.findMany({
     where: { guildId },

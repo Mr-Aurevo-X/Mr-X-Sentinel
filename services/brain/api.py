@@ -22,7 +22,15 @@ from pydantic import BaseModel, Field
 from ml.model import MrXBrainInference
 
 DB_PATH    = "brain.db"
-API_KEY    = os.getenv("BRAIN_API_KEY", "changeme")
+_raw_key = (os.getenv("BRAIN_API_KEY") or "").strip()
+_is_dev = (os.getenv("DEV") or "").strip() in ("1", "true", "True", "yes")
+if not _raw_key or _raw_key.lower() in {"changeme", "dev-brain-key"}:
+    if not _is_dev:
+        raise RuntimeError(
+            "BRAIN_API_KEY manquant ou faible — refuse de demarrer hors DEV=1"
+        )
+    _raw_key = _raw_key or "dev-local-only"
+API_KEY = _raw_key
 
 # Instance unique du modèle (chargée au démarrage)
 brain      = MrXBrainInference()

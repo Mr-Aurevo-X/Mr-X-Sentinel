@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions, fetchManagedGuilds } from "@/lib/auth";
+import { authOptions, fetchManagedGuilds, getDiscordAccessToken } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Nav } from "@/components/Nav";
 
@@ -8,7 +8,7 @@ export default async function GuildsPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
-  const accessToken = (session as { accessToken?: string }).accessToken;
+  const accessToken = await getDiscordAccessToken();
   const guilds = accessToken ? await fetchManagedGuilds(accessToken) : [];
 
   return (

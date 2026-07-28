@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions, canManageGuild } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma, getGuildConfig } from "@sentinel/database";
 import { Nav } from "@/components/Nav";
@@ -26,6 +26,7 @@ export default async function GuildPage({
   if (!session) redirect("/login");
 
   const { guildId } = await params;
+  if (!(await canManageGuild(guildId))) redirect("/guilds");
   const guild = await prisma.guild.findUnique({ where: { id: guildId } });
   const config = await getGuildConfig(guildId);
   const lockdown = guild?.lockdown ?? (await getLockdown(guildId));
