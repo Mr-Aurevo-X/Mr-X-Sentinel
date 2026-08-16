@@ -6,8 +6,6 @@ import { buildSimpleEmbed, successEmbed } from "../../ui/embeds.js";
 import type { CommandReply } from "../middleware.js";
 import { memberHasAdmin } from "../permissions.js";
 
-const BRAIN_URL = process.env.BRAIN_URL ?? "http://127.0.0.1:8765";
-
 export async function handleChannel(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
   const sub = interaction.options.getSubcommand();
   const guild = interaction.guild!;
@@ -123,56 +121,6 @@ export async function handleLevelsRoles(interaction: ChatInputCommandInteraction
       ),
     ],
   };
-}
-
-export async function handleBrainExtended(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
-  const sub = interaction.options.getSubcommand();
-  const guildId = interaction.guild!.id;
-  const cfg = await getGuildConfig(guildId);
-
-  if (sub === "toggle") {
-    const enabled = interaction.options.getBoolean("enabled", true);
-    await updateGuildConfig(guildId, { features: { ...cfg.features, brain: enabled } });
-    return { embeds: [successEmbed("Brain", `Module IA **${enabled ? "ON" : "OFF"}**.`)] };
-  }
-
-  if (sub === "seuil") {
-    const spam = interaction.options.getNumber("spam");
-    const tox = interaction.options.getNumber("toxicity");
-    const lines: string[] = [];
-    if (spam != null) lines.push(`Seuil spam Brain : **${spam}** (env BRAIN_SPAM_THRESHOLD)`);
-    if (tox != null) lines.push(`Seuil toxicité : **${tox}** (env BRAIN_TOX_THRESHOLD)`);
-    return {
-      embeds: [
-        buildSimpleEmbed(
-          "Seuils Brain",
-          lines.join("\n") || "Renseigne spam et/ou toxicity.",
-        ),
-      ],
-    };
-  }
-
-  if (sub === "analyse") {
-    const text = interaction.options.getString("text", true);
-    const res = await fetch(`${BRAIN_URL}/analyze`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-      signal: AbortSignal.timeout(5000),
-    }).catch(() => null);
-    if (!res?.ok) throw new Error("Brain indisponible.");
-    const data = (await res.json()) as { spam?: number; toxicity?: number };
-    return {
-      embeds: [
-        buildSimpleEmbed(
-          "Analyse Brain",
-          `Spam : **${((data.spam ?? 0) * 100).toFixed(0)}%**\nToxicité : **${((data.toxicity ?? 0) * 100).toFixed(0)}%**`,
-        ),
-      ],
-    };
-  }
-
-  throw new Error("Sous-commande inconnue.");
 }
 
 export async function handleAfk(interaction: ChatInputCommandInteraction): Promise<CommandReply> {

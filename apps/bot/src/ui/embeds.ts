@@ -8,11 +8,12 @@ import {
   formatMoney,
   formatNumber,
   medalForPlace,
-  mlBar,
   progressBar,
   rankFlair,
   wealthStatus,
   type ShopCatalogEntry,
+  type GuildFeatures,
+  visibleGuildFeatures,
 } from "@sentinel/shared";
 
 type EmbedOpts = {
@@ -345,35 +346,12 @@ export function buildTicketOpenEmbed(user: User): EmbedBuilder {
   });
 }
 
-export function buildBrainStatusEmbed(data: {
-  online: boolean;
-  samples?: number;
-  ready?: boolean;
-  spam?: number;
-  toxicity?: number;
-}): EmbedBuilder {
-  if (!data.online) {
-    return errorEmbed(
-      "Mr-X Brain hors ligne",
-      "Lance `docker compose up -d brain` ou le service Python.",
-    );
-  }
-  const embed = successEmbed("Mr-X Brain en ligne", `${data.samples ?? "?"} exemples d'entraînement`);
-  if (data.spam != null) {
-    embed.addFields({ name: "Spam", value: `\`${mlBar(data.spam)}\``, inline: false });
-  }
-  if (data.toxicity != null) {
-    embed.addFields({ name: "Toxicité", value: `\`${mlBar(data.toxicity)}\``, inline: false });
-  }
-  return embed;
-}
-
 export function buildModuleDisabledEmbed(module: string): EmbedBuilder {
   return warningEmbed("Module désactivé", `Le module **${module}** est désactivé. Utilise \`/config feature\`.`);
 }
 
-export function buildConfigViewEmbed(features: Record<string, boolean>): EmbedBuilder {
-  const lines = Object.entries(features)
+export function buildConfigViewEmbed(features: GuildFeatures): EmbedBuilder {
+  const lines = visibleGuildFeatures(features)
     .map(([k, v]) => `**${k}** : ${v ? "✅ on" : "❌ off"}`)
     .join("\n");
   return baseEmbed({ title: "Configuration serveur", description: lines, color: COLORS.brand });
@@ -386,7 +364,7 @@ export function buildHelpEmbed(tier: "public" | "staff" | "owner" | "bot_owner" 
     staff:
       "**Modération :** `/ban` `/kick` `/mute` `/warn` `/clear` `/panel`\n**Salons :** `/channel slowmode|lock|unlock`\n**Tickets :** `/ticket setup|close|claim|rename`\n**Automod :** `/automod panel`\n**Logs :** `/logs create`",
     owner:
-      "**Config :** `/config view|feature|economy`\n**Niveaux :** `/setlevelchannel` `/levels roles`\n**Templates :** `/template` `/autosetup`\n**Brain :** `/brain toggle|analyse`",
+      "**Config :** `/config view|feature|economy`\n**Niveaux :** `/setlevelchannel` `/levels roles`\n**Templates :** `/template` `/autosetup`",
     bot_owner: "**Global :** `/owner` · `/security whitelist_*` · `/backup` · `/sentinel`",
   };
   return baseEmbed({

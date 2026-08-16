@@ -200,33 +200,6 @@ export const commands = [
     .setName("rank").setDescription("Voir ton niveau XP"),
 
   new SlashCommandBuilder()
-    .setName("chat")
-    .setDescription("Discuter avec l'IA")
-    .addSubcommand((s) =>
-      s
-        .setName("message")
-        .setDescription("Envoyer un message à l'IA")
-        .addStringOption((o) => o.setName("prompt").setDescription("Votre question").setRequired(true)),
-    )
-    .addSubcommand((s) => s.setName("reset").setDescription("Réinitialiser la conversation"))
-    .addSubcommand((s) =>
-      s
-        .setName("mode")
-        .setDescription("Mode de contexte IA")
-        .addStringOption((o) =>
-          o
-            .setName("context")
-            .setDescription("user | channel | thread")
-            .setRequired(true)
-            .addChoices(
-              { name: "Par utilisateur", value: "user" },
-              { name: "Par salon", value: "channel" },
-              { name: "Par fil", value: "thread" },
-            ),
-        ),
-    ),
-
-  new SlashCommandBuilder()
     .setName("play")
     .setDescription("Lire de la musique")
     .addStringOption((o) => o.setName("query").setDescription("URL ou recherche").setRequired(true)),
@@ -267,8 +240,6 @@ export const commands = [
               { name: "Tickets", value: "tickets" },
               { name: "Templates", value: "templates" },
               { name: "Music", value: "music" },
-              { name: "AI", value: "ai" },
-              { name: "Brain", value: "brain" },
               { name: "Fun", value: "fun" },
             ),
         )
@@ -499,31 +470,6 @@ export const commands = [
     .setName("suggest")
     .setDescription("Envoyer une suggestion")
     .addStringOption((o) => o.setName("idea").setDescription("Votre idée").setRequired(true)),
-
-  new SlashCommandBuilder()
-    .setName("brain")
-    .setDescription("Mr-X Brain (anti-scam)")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-    .addSubcommand((s) => s.setName("status").setDescription("État du service Brain"))
-    .addSubcommand((s) =>
-      s
-        .setName("analyse")
-        .setDescription("Analyser un texte")
-        .addStringOption((o) => o.setName("text").setDescription("Texte").setRequired(true)),
-    )
-    .addSubcommand((s) =>
-      s
-        .setName("toggle")
-        .setDescription("Activer/désactiver Brain")
-        .addBooleanOption((o) => o.setName("enabled").setDescription("État").setRequired(true)),
-    )
-    .addSubcommand((s) =>
-      s
-        .setName("seuil")
-        .setDescription("Seuils spam/toxicité (info env)")
-        .addNumberOption((o) => o.setName("spam").setDescription("0-1").setMinValue(0).setMaxValue(1))
-        .addNumberOption((o) => o.setName("toxicity").setDescription("0-1").setMinValue(0).setMaxValue(1)),
-    ),
 
   modCmd("clearwarn", "Effacer les warns d'un membre").addUserOption((o) =>
     o.setName("user").setDescription("Membre").setRequired(true),

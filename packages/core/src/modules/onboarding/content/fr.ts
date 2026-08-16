@@ -1,4 +1,4 @@
-import type { GuildFeatures } from "@sentinel/shared";
+import { visibleGuildFeatures, type GuildFeatures } from "@sentinel/shared";
 
 export type FonctionnementSection =
   | "demarrage"
@@ -25,7 +25,7 @@ export const SECTION_LABELS: Record<FonctionnementSection, string> = {
   levels: "Niveaux XP",
   tickets: "Tickets",
   templates: "Templates",
-  ia_musique: "IA & Musique",
+  ia_musique: "Musique",
   staff: "Staff",
   dashboard: "Dashboard",
   depannage: "Dépannage",
@@ -50,7 +50,7 @@ export function sectionContent(
     case "modules":
       return {
         title: "Modules actifs",
-        body: Object.entries(features)
+        body: visibleGuildFeatures(features)
           .map(([k, v]) => `• **${k}** : ${v ? "activé" : "désactivé"}`)
           .join("\n"),
       };
@@ -90,16 +90,10 @@ export function sectionContent(
       return { title: "Tickets", body: "Panel ticket via boutons. Logs : `#logs-tickets`." };
     case "templates":
       return { title: "Templates", body: "13 modèles de serveur via `/setup` (Phase templates)." };
-    case "ia_musique": {
-      const lines: string[] = [];
-      if (features.ai) lines.push("• /chat message");
-      if (features.music) lines.push("• /play query");
-      if (features.brain) lines.push("• Brain automod actif");
-      return {
-        title: "IA & Musique",
-        body: lines.length ? lines.join("\n") : "Modules IA/musique désactivés.",
-      };
-    }
+    case "ia_musique":
+      return features.music
+        ? { title: "Musique", body: "`/play` + `/music` (Lavalink)." }
+        : { title: "Musique", body: "Module désactivé." };
     case "staff":
       return { title: "Staff", body: "Rôles mod/ticket : `/admin` (à venir). Niveaux : Public, Staff, Owner." };
     case "dashboard":
@@ -107,10 +101,13 @@ export function sectionContent(
     case "depannage":
       return {
         title: "Dépannage",
-        body: "Vérifie intents (Presence, Members, Message Content), rôle bot en haut, `.env` token. Support : propriétaire du bot.",
+        body: "Vérifie intents (Members, Message Content), rôle bot en haut, `.env` token. Support : propriétaire du bot.",
       };
-    default:
+    default: {
+      const _exhaustive: never = section;
+      void _exhaustive;
       return { title: "Mr-X Sentinel", body: "Section inconnue." };
+    }
   }
 }
 
@@ -134,7 +131,7 @@ export function visibleSections(features: GuildFeatures): FonctionnementSection[
     if (s === "security" && !features.security) return false;
     if (s === "economy_fun" && !features.economy && !features.fun) return false;
     if (s === "levels" && !features.levels) return false;
-    if (s === "ia_musique" && !features.ai && !features.music && !features.brain) return false;
+    if (s === "ia_musique" && !features.music) return false;
     return true;
   });
 }

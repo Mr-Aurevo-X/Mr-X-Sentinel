@@ -47,9 +47,6 @@ importers:
 
   apps/bot:
     dependencies:
-      '@sentinel/ai':
-        specifier: workspace:*
-        version: link:../../packages/ai
       '@sentinel/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -118,16 +115,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.2
         version: 19.2.3(@types/react@19.2.15)
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-
-  packages/ai:
-    dependencies:
-      '@sentinel/database':
-        specifier: workspace:*
-        version: link:../database
-    devDependencies:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

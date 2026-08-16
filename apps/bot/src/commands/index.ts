@@ -8,8 +8,7 @@ import {
   logService,
   type ModerationService,
 } from "@sentinel/core";
-import { prisma, getGuildConfig, updateGuildConfig } from "@sentinel/database";
-import { chatCompletion, resetConversation } from "@sentinel/ai";
+import { prisma, getGuildConfig } from "@sentinel/database";
 import { templateService } from "@sentinel/core";
 import { buildFonctionnementEmbed, buildFonctionnementView } from "./fonctionnement.js";
 import { buildLogsPanel, handleComponent } from "../interaction-router.js";
@@ -45,7 +44,6 @@ import { handleMusic } from "./handlers/music.js";
 import { handleBirthday, handleCounting, handleTempVc } from "./handlers/community-extra.js";
 import {
   handleAdmin,
-  handleBrain,
   handleClearwarn,
   handleConfig,
   handleNickname,
@@ -89,7 +87,7 @@ import { buildSentinelMasterHubRows } from "../views/HubViews.js";
 import { buildHelpTierRows } from "../views/HelpView.js";
 import { handleModal } from "../interaction-router.js";
 import { buildModerationConfirmRows, buildModerationPanelRows } from "../views/ModerationViews.js";
-import { defaultGuildFeatures } from "@sentinel/shared";
+import { visibleGuildFeatures } from "@sentinel/shared";
 
 export async function handleInteraction(
   interaction: Interaction,
@@ -139,7 +137,6 @@ export async function handleInteraction(
   else if (name === "botinfo") await run(handleBotInfo, { defer: false });
   else if (name === "userinfo") await run(handleUserInfo, { defer: false });
   else if (name === "rank") await run(handleRank, { module: "levels", loadingTitle: "Chargement du profil…" });
-  else if (name === "chat") await handleChat(interaction);
   else if (name === "play") await run((i, c) => handlePlayMusic(i, c), { module: "music", ephemeral: false, loadingTitle: "Recherche…" });
   else if (name === "music") await run((i, c) => handleMusic(i, c), { module: "music", defer: false });
   else if (name === "birthday") await run(() => handleBirthday(interaction), { module: "community" });
@@ -172,7 +169,6 @@ export async function handleInteraction(
   else if (name === "lvl_info") await run(handleLvlInfo, { module: "levels", defer: false });
   else if (name === "template") await run(handleTemplatePanel, { module: "templates", ephemeral: false, defer: false });
   else if (name === "suggest") await run(handleSuggest, { defer: false });
-  else if (name === "brain") await run((i) => handleBrain(i), { module: "brain", loadingTitle: "Connexion Brain…" });
   else if (name === "channel") await run(handleChannel, { module: "moderation", defer: false });
   else if (name === "setspam") await run(handleSetspam, { defer: false });
   else if (name === "removespam") await run(handleRemovespam, { defer: false });
@@ -300,11 +296,11 @@ async function handleLogs(interaction: ChatInputCommandInteraction) {
 async function handleSentinel(interaction: ChatInputCommandInteraction) {
   const guild = interaction.guild!;
   const cfg = await getGuildConfig(guild.id);
-  const defs = defaultGuildFeatures();
-  const on = Object.keys(defs).filter((k) => cfg.features[k as keyof typeof cfg.features]).length;
+  const visible = visibleGuildFeatures(cfg.features);
+  const on = visible.filter(([, enabled]) => enabled).length;
   const banner = process.env.BRAND_BANNER_URL ?? null;
   await interaction.reply({
-    embeds: [buildSentinelMasterHubEmbed(guild.name, guild.memberCount, on, Object.keys(defs).length, banner)],
+    embeds: [buildSentinelMasterHubEmbed(guild.name, guild.memberCount, on, visible.length, banner)],
     components: buildSentinelMasterHubRows(),
     ephemeral: true,
   });
@@ -423,44 +419,6 @@ async function handleBackup(interaction: ChatInputCommandInteraction) {
       ephemeral: true,
     });
   }
-}
-
-async function handleChat(interaction: ChatInputCommandInteraction) {
-  const sub = interaction.options.getSubcommand();
-  if (sub === "reset") {
-    await resetConversation(interaction.user.id, interaction.guild!.id, {
-      channelId: interaction.channelId,
-      threadId: interaction.channel?.isThread() ? interaction.channel.id : null,
-    });
-    await interaction.reply({
-      embeds: [successEmbed("IA", "Conversation réinitialisée.")],
-      ephemeral: true,
-    });
-    return;
-  }
-  if (sub === "mode") {
-    const context = interaction.options.getString("context", true) as "user" | "channel" | "thread";
-    const cfg = await getGuildConfig(interaction.guild!.id);
-    await updateGuildConfig(interaction.guild!.id, {
-      ai: { ...cfg.ai, contextMode: context },
-    });
-    await interaction.reply({
-      embeds: [successEmbed("IA", `Mode de contexte : **${context}**.`)],
-      ephemeral: true,
-    });
-    return;
-  }
-  await withCommand(
-    async () => {
-      const prompt = interaction.options.getString("prompt", true);
-      const reply = await chatCompletion(interaction.user.id, interaction.guild!.id, prompt, {
-        channelId: interaction.channelId,
-        threadId: interaction.channel?.isThread() ? interaction.channel.id : null,
-      });
-      return { embeds: [buildSimpleEmbed("Mr-X IA", reply.slice(0, 4000))] };
-    },
-    { module: "ai", loadingTitle: "Réflexion…" },
-  )(interaction, {} as import("discord.js").Client);
 }
 
 async function handleBan(interaction: ChatInputCommandInteraction, mod: ModerationService) {

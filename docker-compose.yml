@@ -44,25 +44,6 @@ services:
     depends_on:
       - redis
 
-  brain:
-    build:
-      context: ./services/brain
-      dockerfile: Dockerfile
-    container_name: sentinel-brain
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:8765:8765"
-    environment:
-      BRAIN_API_KEY: ${BRAIN_API_KEY:?Set BRAIN_API_KEY}
-      DEV: ${DEV:-0}
-      BRAIN_HOST: 0.0.0.0
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/status', timeout=3)"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 90s
-
 volumes:
   sentinel_pg_data:
   sentinel_redis_data:

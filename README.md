@@ -1,6 +1,6 @@
 # Mr-X Sentinel
 
-Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tickets, IA et musique — un seul bot, modules activables par serveur.
+Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tickets et musique — un seul bot, modules activables par serveur.
 
 **Dépôt :** https://github.com/Mr-Aurevo-X/Mr-X-Sentinel
 
@@ -37,9 +37,7 @@ Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tick
 | **Fun** | Coinflip, slots, roulette, **blackjack interactif** + hubs `/gamble` `/minijeux` (boutons) | `fun` |
 | **Tickets** | Panneau, ouverture, claim, fermeture | `tickets` |
 | **Templates** | 14 structures de serveur (rôles + salons) | `/setup template:…` |
-| **IA** | `/chat` (Groq par défaut) | `ai` + `OPENAI_API_KEY` |
 | **Musique** | `/play` + contrôles (Lavalink) | `music` + Docker Lavalink |
-| **Brain** | Anti-spam / toxicité (API Python) | `brain` + `docker compose up -d brain` |
 
 Hub membre : **`/sentinel menu`** ou **`/eco`** (navigation boutons, embeds premium).
 
@@ -54,11 +52,9 @@ Parité legacy : [`docs/LEGACY_FEATURE_MATRIX.md`](docs/LEGACY_FEATURE_MATRIX.md
 2. **pnpm 9.15+** — `corepack enable` puis `corepack prepare pnpm@9.15.0 --activate`, ou `npm i -g pnpm`
 3. **Docker Desktop** (Windows/macOS/Linux) — https://docs.docker.com/desktop/
 4. **Application Discord** — [Developer Portal](https://discord.com/developers/applications/1507473175498457129)
-5. **Clé Groq** (optionnel, pour `/chat`) — https://console.groq.com
 
 ### Intents du bot (à activer dans le Portal → Bot)
 
-- Presence Intent  
 - Server Members Intent  
 - Message Content Intent  
 - **Guild Message Reactions** (giveaways 🎉, reaction roles)
@@ -131,15 +127,9 @@ pnpm dev:bot
 | `REDIS_URL` | Oui | `redis://localhost:6379` |
 | `NEXTAUTH_SECRET` | Dashboard | Chaîne aléatoire 32+ caractères |
 | `NEXTAUTH_URL` | Dashboard | `http://localhost:3000` |
-| `OPENAI_API_KEY` | IA | Clé Groq `gsk_...` |
-| `OPENAI_BASE_URL` | IA | `https://api.groq.com/openai/v1` (défaut projet) |
-| `AI_MODEL` | IA | ex. `llama-3.3-70b-versatile` |
 | `LAVALINK_HOST` | Musique | `localhost` |
 | `LAVALINK_PORT` | Musique | `2333` |
 | `LAVALINK_PASSWORD` | Musique | **requis** (pas de défaut) |
-| `BRAIN_URL` | Non | `http://127.0.0.1:8765` |
-| `BRAIN_API_KEY` | Non | Clé locale Brain |
-| `BRAIN_ENABLED` | Non | `true` / `false` |
 | `LOG_LEVEL` | Non | `info` |
 
 **Dashboard OAuth2** — dans le Portal → OAuth2 → Redirects, ajouter :
@@ -302,14 +292,11 @@ http://localhost:3000/api/auth/callback/discord
 | `/owner balance` | Modifier cash / banque d’un membre |
 | `/owner xp` | Modifier XP et niveau d’un membre |
 
-### IA, musique, Brain
+### Musique
 
 | Commande | Description |
 |----------|-------------|
-| `/chat message` | Discuter avec l’IA (Groq) |
-| `/chat reset` | Réinitialiser la conversation |
 | `/play` | Lire de la musique (salon vocal requis) |
-| `/brain status` | État du service Mr-X Brain |
 
 ---
 
@@ -374,17 +361,15 @@ Mr-X-Sentinel/
 │   ├── shared/                 # Zod config, features, customId, UI tokens
 │   ├── database/               # Prisma schema + client Postgres
 │   ├── core/                   # Métier : anti-nuke/raid, automod, économie, XP,
-│   │                           # tickets, templates (presets JSON), logs, brain client
-│   └── ai/                     # Client Groq/OpenAI pour /chat
-├── services/
-│   └── brain/                  # API Python anti-spam / toxicité (Docker)
+│   │                           # tickets, templates (presets JSON), logs
+├── archive/ai-brain/           # IA + Brain parkés (réintégration plus tard)
 ├── tools/
 │   ├── migrate-legacy-sqlite.ts
 │   └── migrate-ult-postgres.ts # Import Ult → Sentinel
 ├── docs/                       # LEGACY_FEATURE_MATRIX, UI_STYLE_GUIDE
 ├── lavalink/                   # application.yml Lavalink v4
 ├── .github/workflows/          # CI (build:ci)
-└── docker-compose.yml          # Postgres, Redis, Lavalink, brain
+└── docker-compose.yml          # Postgres, Redis, Lavalink
 ```
 
 **Flux interaction bot :** slash → `commands/index.ts` (`assertSlashAccess`) → handler → `@sentinel/core` · composant → `interaction-router.ts` (`assertComponentAccess` + anticheat économie).
@@ -435,10 +420,8 @@ Données migrées : config guild (`guild_configs`), wallets/XP (`users`), warns 
 | Slash commands absentes | `pnpm --filter @sentinel/bot deploy-commands` |
 | Giveaways / reaction roles inactifs | Activer **Guild Message Reactions** dans le Portal Discord |
 | `/owner` refusé | Renseigner `BOT_OWNER_ID` dans `.env` (votre ID utilisateur) |
-| `/chat` ne répond pas | Renseigner `OPENAI_API_KEY` (Groq), redémarrer le bot |
 | `/play` ne marche pas | Être en vocal ; Lavalink up (`docker compose ps`) |
 | Dashboard login impossible | `DISCORD_CLIENT_SECRET`, `NEXTAUTH_SECRET`, redirect OAuth |
-| Brain hors ligne | Normal si le service Python n’est pas lancé ; optionnel |
 
 ---
 

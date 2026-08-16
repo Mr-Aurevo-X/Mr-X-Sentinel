@@ -1,8 +1,6 @@
 import { prisma } from "@sentinel/database";
 import { getRedis, logger } from "@sentinel/core";
-import { checkBrainHealth } from "./BrainLauncher.js";
 
-const BRAIN_URL = process.env.BRAIN_URL ?? "http://127.0.0.1:8765";
 const LAVALINK_HOST = process.env.LAVALINK_HOST ?? "127.0.0.1";
 const LAVALINK_PORT = process.env.LAVALINK_PORT ?? "2333";
 
@@ -41,10 +39,9 @@ async function checkLavalink(): Promise<boolean> {
 }
 
 export async function runStartupHealthChecks(): Promise<void> {
-  const [db, redis, brain, lavalink] = await Promise.all([
+  const [db, redis, lavalink] = await Promise.all([
     checkPostgres(),
     checkRedis(),
-    checkBrainHealth().then((h) => h.online),
     checkLavalink(),
   ]);
 
@@ -54,7 +51,6 @@ export async function runStartupHealthChecks(): Promise<void> {
     "├─────────────────────────────────────┤",
     `│  PostgreSQL   ${db ? "✅ OK" : "❌ KO"}              │`,
     `│  Redis        ${redis ? "✅ OK" : "❌ KO"}              │`,
-    `│  Brain        ${brain ? "✅ OK" : "⚠️  OFF"}              │`,
     `│  Lavalink     ${lavalink ? "✅ OK" : "⚠️  OFF"}              │`,
     "└─────────────────────────────────────┘",
   ];
@@ -65,13 +61,11 @@ export async function runStartupHealthChecks(): Promise<void> {
       event: "sentinel_boot_health",
       postgres: db,
       redis,
-      brain,
       lavalink,
       ok: db && redis,
     }),
   );
   if (!db) logger.error("Postgres inaccessible — vérifie DATABASE_URL et docker compose");
   if (!redis) logger.warn("Redis inaccessible — certaines fonctions sécurité limitées");
-  if (!brain) logger.warn(`Brain hors ligne (${BRAIN_URL}) — automod ML réduit`);
   if (!lavalink) logger.warn("Lavalink hors ligne — /play indisponible");
 }

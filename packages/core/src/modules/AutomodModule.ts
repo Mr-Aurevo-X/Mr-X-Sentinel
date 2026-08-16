@@ -4,12 +4,6 @@ import { getGuildConfig, isWhitelisted, prisma } from "@sentinel/database";
 import { incrementWindow, REDIS_KEYS } from "../redis.js";
 import { modLogService } from "../services/ModLogService.js";
 import { logService } from "../services/LogService.js";
-import {
-  analyzeWithBrain,
-  BRAIN_SPAM_THRESHOLD,
-  BRAIN_TOX_THRESHOLD,
-  isBrainConfigured,
-} from "../services/MrxBrainService.js";
 import { capsRatio, hasDiscordInvite, hasZalgo } from "./automod/automodText.js";
 
 const URL_REGEX = /https?:\/\/[^\s<]+/gi;
@@ -37,18 +31,6 @@ export class AutomodModule {
     if (wl.whitelisted) return;
 
     const violations: string[] = [];
-
-    if (isBrainConfigured()) {
-      const brain = await analyzeWithBrain(message.content);
-      if (brain) {
-        if (brain.spam >= BRAIN_SPAM_THRESHOLD) {
-          violations.push(`MrXBrain spam (${(brain.spam * 100).toFixed(0)}%)`);
-        }
-        if (brain.toxicity >= BRAIN_TOX_THRESHOLD) {
-          violations.push(`MrXBrain toxicité (${(brain.toxicity * 100).toFixed(0)}%)`);
-        }
-      }
-    }
 
     const accountAgeH = (Date.now() - message.author.createdTimestamp) / 3600000;
     if (automod.newAccountHours > 0 && accountAgeH < automod.newAccountHours) {
@@ -116,14 +98,6 @@ export class AutomodModule {
 
     if (violations.length === 0) return;
 
-    const brainHit = violations.some((v) => v.startsWith("MrXBrain"));
-    if (brainHit) {
-      await logService.log(this.client, message.guild!.id, "brain", {
-        title: "Mr-X Brain",
-        description: violations.filter((v) => v.startsWith("MrXBrain")).join("\n"),
-        actorId: message.author.id,
-      });
-    }
     await logService.log(this.client, message.guild!.id, "automod", {
       title: "Automod",
       description: violations.join("\n"),
