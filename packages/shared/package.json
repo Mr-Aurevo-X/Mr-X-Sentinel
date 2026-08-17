@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cookie-header": {
+      "types": "./dist/cookie-header.d.ts",
+      "import": "./dist/cookie-header.js"
     }
   },
   "scripts": {

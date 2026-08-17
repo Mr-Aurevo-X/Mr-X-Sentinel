@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt";
 import DiscordProvider from "next-auth/providers/discord";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { discordTokenNeedsRefresh, refreshDiscordToken } from "./discord-oauth";
+import { discordTokenNeedsRefresh } from "./discord-oauth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -29,20 +29,8 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
-        return token;
       }
-      if (
-        discordTokenNeedsRefresh(token.expiresAt) &&
-        typeof token.refreshToken === "string" &&
-        token.refreshToken.length > 0
-      ) {
-        const refreshed = await refreshDiscordToken(token.refreshToken);
-        if (refreshed) {
-          token.accessToken = refreshed.accessToken;
-          token.refreshToken = refreshed.refreshToken;
-          token.expiresAt = refreshed.expiresAt;
-        }
-      }
+      // Refresh + cookie persist live in middleware — getServerSession cannot Set-Cookie.
       return token;
     },
   },
@@ -71,14 +59,7 @@ export async function getDiscordAccessToken(): Promise<string | null> {
     secret: process.env.NEXTAUTH_SECRET,
   });
   if (!token) return null;
-  if (
-    discordTokenNeedsRefresh(token.expiresAt) &&
-    typeof token.refreshToken === "string" &&
-    token.refreshToken.length > 0
-  ) {
-    const refreshed = await refreshDiscordToken(token.refreshToken);
-    if (refreshed?.accessToken) return refreshed.accessToken;
-  }
+  if (discordTokenNeedsRefresh(token.expiresAt)) return null;
   const access = token.accessToken;
   return typeof access === "string" && access.length > 0 ? access : null;
 }

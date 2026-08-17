@@ -12,6 +12,9 @@ describe("play query allowlist", () => {
   it("rejects raw HTTP and metadata IPs", () => {
     expect(isAllowedPlayQuery("http://169.254.169.254/latest/meta-data")).toBe(false);
     expect(isAllowedPlayQuery("https://example.com/track.mp3")).toBe(false);
+    expect(isAllowedPlayQuery("https://user:pass@www.youtube.com/watch?v=x")).toBe(false);
+    expect(isAllowedPlayQuery("//169.254.169.254/latest/meta-data")).toBe(false);
+    expect(isAllowedPlayQuery("169.254.169.254/latest/meta-data")).toBe(false);
     expect(() => assertSafePlayQuery("http://127.0.0.1/x")).toThrow(/HTTP directs/);
   });
 });

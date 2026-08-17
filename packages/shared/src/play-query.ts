@@ -13,9 +13,15 @@ const ALLOWED_PLAY_HOSTS = new Set([
 
 export function isAllowedPlayQuery(query: string): boolean {
   const trimmed = query.trim();
-  if (!/^https?:\/\//i.test(trimmed)) return true;
+  if (!/^https?:\/\//i.test(trimmed)) {
+    if (trimmed.startsWith("//")) return false;
+    if (/^(\d{1,3}\.){3}\d{1,3}(?::\d+)?(?:[/?#]|$)/.test(trimmed)) return false;
+    return true;
+  }
   try {
-    const host = new URL(trimmed).hostname.toLowerCase();
+    const parsed = new URL(trimmed);
+    if (parsed.username || parsed.password) return false;
+    const host = parsed.hostname.toLowerCase();
     if (ALLOWED_PLAY_HOSTS.has(host)) return true;
     return host.endsWith(".youtube.com") || host.endsWith(".soundcloud.com");
   } catch {
