@@ -1,5 +1,5 @@
 /** @deprecated Import from ./handlers/* — kept for compatibility */
-export { handleConfig, handleAdmin, handleBrain, handleSuggest, handleClearwarn, handleNickname, handlePlayMusic } from "./handlers/admin.js";
+export { handleConfig, handleAdmin, handleSuggest, handleClearwarn, handleNickname, handlePlayMusic } from "./handlers/admin.js";
 export {
   handleBalance,
   handlePay,

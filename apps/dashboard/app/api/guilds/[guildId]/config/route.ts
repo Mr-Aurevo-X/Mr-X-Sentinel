@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertCanManageGuild } from "@/lib/auth";
 import { updateGuildConfig, getGuildConfig } from "@sentinel/database";
-import { guildConfigSchema } from "@sentinel/shared";
+import { guildConfigSchema, stripParkedFeaturePatch } from "@sentinel/shared";
 import Redis from "ioredis";
 
 export async function GET(
@@ -22,9 +22,17 @@ export async function PATCH(
   const { guildId } = await params;
   const denied = await assertCanManageGuild(guildId);
   if (denied) return denied;
-  const body = await req.json();
+  const body = (await req.json()) as Record<string, unknown>;
   const current = await getGuildConfig(guildId);
-  const merged = guildConfigSchema.parse({ ...current, ...body });
+  const bodyFeatures =
+    body.features && typeof body.features === "object" && !Array.isArray(body.features)
+      ? stripParkedFeaturePatch(body.features as Record<string, unknown>)
+      : undefined;
+  const merged = guildConfigSchema.parse({
+    ...current,
+    ...body,
+    features: { ...current.features, ...(bodyFeatures ?? {}) },
+  });
   const config = await updateGuildConfig(guildId, merged);
 
   try {

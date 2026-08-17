@@ -39,14 +39,6 @@ services:
       redis: { condition: service_healthy }
     networks: [sentinel]
 
-  brain:
-    build: { context: ./services/brain, dockerfile: Dockerfile }
-    restart: unless-stopped
-    profiles: [brain]
-    environment:
-      BRAIN_API_KEY: ${BRAIN_API_KEY:-dev-brain-key}
-    networks: [sentinel]
-
   migrate:
     build: { context: ., dockerfile: docker/bot.Dockerfile }
     restart: "no"
@@ -67,8 +59,6 @@ services:
       BOT_OWNER_ID: ${BOT_OWNER_ID:-}
       DATABASE_URL: postgresql://${POSTGRES_USER:-mrx}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinel}
       REDIS_URL: redis://redis:6379
-      BRAIN_URL: http://brain:8765
-      BRAIN_ENABLED: ${BRAIN_ENABLED:-false}
       LAVALINK_HOST: lavalink
       LAVALINK_PORT: "2333"
       LAVALINK_PASSWORD: ${LAVALINK_PASSWORD:?Set LAVALINK_PASSWORD}

@@ -9,19 +9,17 @@ import {
 } from "discord.js";
 import { customId } from "@sentinel/shared";
 import { getGuildConfig, updateGuildConfig } from "@sentinel/database";
-import { BRAND_COLOR, type GuildFeatures } from "@sentinel/shared";
-import { buildBrainStatusEmbed, buildConfigViewEmbed, buildSimpleEmbed, successEmbed } from "../../ui/embeds.js";
+import { BRAND_COLOR, isParkedFeatureKey, type GuildFeatures } from "@sentinel/shared";
+import { buildConfigViewEmbed, buildSimpleEmbed, successEmbed } from "../../ui/embeds.js";
 import type { CommandReply } from "../middleware.js";
 import { handleAdminShopAdd, handleAdminShopRemove } from "./tickets.js";
-
-const BRAIN_URL = process.env.BRAIN_URL ?? "http://127.0.0.1:8765";
 
 export async function handleConfig(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
   const sub = interaction.options.getSubcommand();
   const guildId = interaction.guild!.id;
   if (sub === "view") {
     const cfg = await getGuildConfig(guildId);
-    return { embeds: [buildConfigViewEmbed(cfg.features as Record<string, boolean>)] };
+    return { embeds: [buildConfigViewEmbed(cfg.features)] };
   }
   if (sub === "welcome") {
     const cfg = await getGuildConfig(guildId);
@@ -70,11 +68,14 @@ export async function handleConfig(interaction: ChatInputCommandInteraction): Pr
       ],
     };
   }
-  const mod = interaction.options.getString("module", true) as keyof GuildFeatures;
+  const mod = interaction.options.getString("module", true);
+  if (isParkedFeatureKey(mod)) {
+    throw new Error("Ce module est désactivé pour le moment.");
+  }
   const enabled = interaction.options.getBoolean("enabled", true);
   const cfg = await getGuildConfig(guildId);
   await updateGuildConfig(guildId, {
-    features: { ...cfg.features, [mod]: enabled },
+    features: { ...cfg.features, [mod as keyof GuildFeatures]: enabled },
   });
   return {
     embeds: [successEmbed("Module mis à jour", `**${mod}** → ${enabled ? "activé" : "désactivé"}.`)],
@@ -104,34 +105,6 @@ export async function handleAdmin(interaction: ChatInputCommandInteraction): Pro
     return handleAdminRoles(interaction);
   }
   throw new Error("Sous-commande inconnue.");
-}
-
-export async function handleBrain(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
-  const sub = interaction.options.getSubcommand();
-  if (sub !== "status") {
-    const { handleBrainExtended } = await import("./extended.js");
-    return handleBrainExtended(interaction);
-  }
-  try {
-    const res = await fetch(`${BRAIN_URL}/status`, { signal: AbortSignal.timeout(3000) });
-    if (!res.ok) {
-      return { embeds: [buildBrainStatusEmbed({ online: false })] };
-    }
-    const data = (await res.json()) as { samples?: number; ready?: boolean; spam?: number; toxicity?: number };
-    return {
-      embeds: [
-        buildBrainStatusEmbed({
-          online: true,
-          samples: data.samples,
-          ready: data.ready,
-          spam: data.spam,
-          toxicity: data.toxicity,
-        }),
-      ],
-    };
-  } catch {
-    return { embeds: [buildBrainStatusEmbed({ online: false })] };
-  }
 }
 
 export async function handleSuggest(interaction: ChatInputCommandInteraction): Promise<CommandReply> {

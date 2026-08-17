@@ -7,7 +7,6 @@ export * from "./services/QuarantineService.js";
 export * from "./services/ModLogService.js";
 export * from "./services/LogService.js";
 export * from "./services/LogProvisioningService.js";
-export * from "./services/MrxBrainService.js";
 export * from "./modules/registry.js";
 export * from "./modules/economy/EconomyService.js";
 export * from "./modules/levels/LevelsService.js";

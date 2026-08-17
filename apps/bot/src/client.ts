@@ -25,7 +25,6 @@ import { t } from "./i18n/index.js";
 import { handleInteraction } from "./commands/index.js";
 import { musicManager } from "./music/MusicManager.js";
 import { runStartupHealthChecks } from "./services/startup-health.js";
-import { logBrainStatusAtBoot } from "./services/BrainLauncher.js";
 import { processLevelUp } from "./services/LevelUpHandler.js";
 import { welcomeAnnouncer } from "./services/WelcomeAnnouncer.js";
 import { registerCommunityListeners, updateMemberCounter } from "./services/CommunityListeners.js";
@@ -40,7 +39,6 @@ export function createClient(): Client {
       GatewayIntentBits.MessageContent,
       GatewayIntentBits.GuildWebhooks,
       GatewayIntentBits.GuildVoiceStates,
-      GatewayIntentBits.GuildPresences,
       GatewayIntentBits.GuildMessageReactions,
     ],
     partials: [Partials.GuildMember, Partials.Message, Partials.Reaction],
@@ -56,7 +54,6 @@ export function createClient(): Client {
 
   client.once(Events.ClientReady, async (c) => {
     await runStartupHealthChecks();
-    await logBrainStatusAtBoot();
     await getRedis().connect().catch(() => getRedis());
     await musicManager.init(c).catch((err) => {
       logger.warn({ err }, "Lavalink indisponible — musique désactivée");
@@ -102,6 +99,7 @@ export function createClient(): Client {
 
   client.on(Events.GuildMemberRemove, async (member) => {
     if (!member.guild) return;
+    await updateMemberCounter(client, member.guild.id, member.guild.memberCount);
     const features = await getGuildFeatures(member.guild.id);
     if (!features.community) return;
     await welcomeAnnouncer.onMemberLeave(client, member);
