@@ -1,6 +1,7 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { type GuildMember, type GuildChannel, type TextChannel } from "discord.js";
 import { getGuildConfig, updateGuildConfig, prisma } from "@sentinel/database";
+import { logProvisioningService, templateService } from "@sentinel/core";
 import { buildModerationPanelRows } from "../../views/ModerationViews.js";
 import { buildSimpleEmbed, successEmbed } from "../../ui/embeds.js";
 import type { CommandReply } from "../middleware.js";
@@ -167,7 +168,6 @@ export async function handleAutosetup(
   if (!memberHasAdmin(interaction.member as GuildMember)) {
     throw new Error("Administrateur requis.");
   }
-  const { logProvisioningService, templateService } = await import("@sentinel/core");
   const guild = interaction.guild!;
   const templateKey = interaction.options.getString("template") ?? "gaming";
   await templateService.apply(guild, templateKey, client, interaction.user.id, { createLogs: true });

@@ -13,6 +13,7 @@ import { modLogService } from "../services/ModLogService.js";
 import { enqueueRestore } from "../queue/restoreQueue.js";
 import { snapshotService } from "../services/SnapshotService.js";
 import { logger } from "../logger.js";
+import { shouldRunAntiNuke } from "./featureGates.js";
 
 const AUDIT_MAP: Partial<Record<AuditLogEvent, AuditActionType>> = {
   [AuditLogEvent.MemberBanAdd]: "BAN",
@@ -46,7 +47,7 @@ export class AntiNukeModule {
 
     const actorId = entry.executorId;
     const config = await getGuildConfig(guild.id);
-    if (!config.antiNuke.enabled) return;
+    if (!shouldRunAntiNuke(config.features, config.antiNuke.enabled)) return;
 
     const ownerId = guild.ownerId;
     const wl = actorId

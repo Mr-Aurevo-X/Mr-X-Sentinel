@@ -5,6 +5,7 @@ import { incrementWindow, REDIS_KEYS } from "../redis.js";
 import { modLogService } from "../services/ModLogService.js";
 import { logService } from "../services/LogService.js";
 import { capsRatio, hasDiscordInvite, hasZalgo } from "./automod/automodText.js";
+import { shouldRunAutomod } from "./featureGates.js";
 
 const URL_REGEX = /https?:\/\/[^\s<]+/gi;
 
@@ -21,7 +22,7 @@ export class AutomodModule {
   private async handleMessage(message: Message): Promise<void> {
     const config = await getGuildConfig(message.guild!.id);
     const automod = { ...DEFAULT_AUTOMOD, ...config.automod };
-    if (!automod.enabled) return;
+    if (!shouldRunAutomod(config.features, automod.enabled)) return;
 
     const wl = await isWhitelisted(
       message.guild!.id,

@@ -22,6 +22,17 @@ async function checkSlashDefinitions() {
     return;
   }
   ok(`slash definitions (${commands.length} commands)`);
+
+  const { buildCommandRegistry } = await import("../apps/bot/src/commands/registry.ts");
+  const registered = Object.keys(buildCommandRegistry({} as never)).sort();
+  const defined = commands.map((c) => c.name).sort();
+  const missing = defined.filter((name) => !registered.includes(name));
+  const extra = registered.filter((name) => !defined.includes(name));
+  if (missing.length || extra.length) {
+    fail(`command registry mismatch missing=${missing.join(",")} extra=${extra.join(",")}`);
+    return;
+  }
+  ok(`command registry covers all ${defined.length} slash commands`);
 }
 
 function checkTemplatePresets() {

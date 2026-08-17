@@ -21,7 +21,7 @@ export type CommandHandler = (
 
 export type CommandOptions = {
   defer?: boolean;
-  ephemeral?: boolean;
+  ephemeral?: boolean | ((interaction: ChatInputCommandInteraction) => boolean);
   module?: keyof GuildFeatures;
   loadingTitle?: string;
   skipDefer?: boolean;
@@ -49,9 +49,13 @@ export function withCommand(
   handler: CommandHandler,
   options: CommandOptions = {},
 ): (interaction: ChatInputCommandInteraction, client: import("discord.js").Client) => Promise<void> {
-  const { defer = true, ephemeral = true, module, loadingTitle, skipDefer = false } = options;
+  const { defer = true, module, loadingTitle, skipDefer = false } = options;
 
   return async (interaction, client) => {
+    const ephemeral =
+      typeof options.ephemeral === "function"
+        ? options.ephemeral(interaction)
+        : (options.ephemeral ?? true);
     if (module) {
       const features = (await getGuildConfig(interaction.guild!.id)).features;
       if (!isModuleEnabled(features, module)) {

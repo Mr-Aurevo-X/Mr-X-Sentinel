@@ -4,6 +4,7 @@ import {
   parseGuildConfig,
   type GuildConfig,
 } from "@sentinel/shared";
+import { guildConfigCache, notifyGuildConfigChanged } from "./guildConfigCache.js";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
 
@@ -29,21 +30,31 @@ export async function getOrCreateGuild(guildId: string) {
   });
 }
 
-export async function getGuildConfig(guildId: string): Promise<GuildConfig> {
+async function loadGuildConfigUncached(guildId: string): Promise<GuildConfig> {
   const guild = await getOrCreateGuild(guildId);
   return parseGuildConfig(guild.config);
+}
+
+export async function getGuildConfig(guildId: string): Promise<GuildConfig> {
+  const cached = guildConfigCache.get(guildId);
+  if (cached) return cached;
+  const parsed = await loadGuildConfigUncached(guildId);
+  guildConfigCache.set(guildId, parsed);
+  return parsed;
 }
 
 export async function updateGuildConfig(
   guildId: string,
   patch: Partial<GuildConfig>,
 ): Promise<GuildConfig> {
-  const current = await getGuildConfig(guildId);
+  const current = await loadGuildConfigUncached(guildId);
   const merged = parseGuildConfig({ ...current, ...patch });
   await prisma.guild.update({
     where: { id: guildId },
     data: { config: merged as object },
   });
+  guildConfigCache.set(guildId, merged);
+  await notifyGuildConfigChanged(guildId);
   return merged;
 }
 
@@ -71,4 +82,9 @@ export async function nextCaseNumber(guildId: string): Promise<number> {
   return (last?.caseNumber ?? 0) + 1;
 }
 
+export {
+  clearGuildConfigCache,
+  invalidateGuildConfigCache,
+  onGuildConfigChanged,
+} from "./guildConfigCache.js";
 export * from "@prisma/client";

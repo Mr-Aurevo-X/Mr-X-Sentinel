@@ -9,13 +9,16 @@
 5. Vérifier : `curl -s http://localhost:3000/api/health`
 6. Slash commands : `pnpm --filter @sentinel/bot deploy-commands`
 
+Node **20 ou 22 LTS** pour le déploiement des slash commands hors Docker (pas Node 24+).
+
 ## Profils Compose
 
 | Commande | Services |
 |----------|----------|
 | `docker compose -f docker-compose.prod.yml up -d` | core (postgres, redis, bot, worker, dashboard) |
 | `... --profile music up -d` | + Lavalink |
-| `... --profile brain up -d` | + Brain ML |
+
+IA / Brain ne sont **pas** dans le compose live. Le code parké est dans [`archive/ai-brain/`](../archive/ai-brain/).
 
 ## Mise à jour
 
@@ -30,8 +33,7 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 |----------|--------|
 | Dashboard 503 | Vérifier Postgres (`DATABASE_URL`), logs `dashboard` |
 | Bot offline | Token Discord, intents Portal, logs `bot` |
-| `/play` KO | Profile `music`, Lavalink up |
-| Brain OFF | Normal si `BRAIN_ENABLED=false` ou sans profile `brain` |
+| `/play` KO | Profile `music`, Lavalink up ; pas de lien HTTP brut |
 
 ## Santé
 

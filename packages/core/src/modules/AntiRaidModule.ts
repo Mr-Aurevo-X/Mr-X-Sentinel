@@ -5,6 +5,7 @@ import { incrementWindow } from "../redis.js";
 import { lockdownService } from "../services/LockdownService.js";
 import { modLogService } from "../services/ModLogService.js";
 import { quarantineService } from "../services/QuarantineService.js";
+import { shouldRunAntiRaid } from "./featureGates.js";
 
 export class AntiRaidModule {
   constructor(private client: Client) {}
@@ -18,7 +19,7 @@ export class AntiRaidModule {
   private async handleJoin(member: GuildMember): Promise<void> {
     const config = await getGuildConfig(member.guild.id);
     const antiRaid = { ...DEFAULT_ANTI_RAID, ...config.antiRaid };
-    if (!antiRaid.enabled) return;
+    if (!shouldRunAntiRaid(config.features, antiRaid.enabled)) return;
 
     const joinCount = await incrementWindow(
       REDIS_KEYS.joinWindow(member.guild.id),

@@ -2,11 +2,11 @@ import type { Guild, GuildMember } from "discord.js";
 import { ChannelType, PermissionFlagsBits } from "discord.js";
 import { prisma } from "@sentinel/database";
 import {
+  ACTIVE_LOG_TYPES,
   LOG_CATEGORY_NAME,
   LOG_CHANNEL_NAMES,
   LOG_ROLE_NAME,
-  LOG_TYPES,
-  type LogType,
+  type ActiveLogType,
 } from "@sentinel/shared";
 import { logger } from "../logger.js";
 
@@ -17,7 +17,7 @@ export class LogProvisioningService {
     return creatingGuilds.has(guildId);
   }
 
-  async provisionAll(guild: Guild, actorId?: string): Promise<Record<LogType, string>> {
+  async provisionAll(guild: Guild, actorId?: string): Promise<Record<ActiveLogType, string>> {
     if (creatingGuilds.has(guild.id)) {
       throw new Error("Création des salons logs déjà en cours.");
     }
@@ -34,9 +34,9 @@ export class LogProvisioningService {
     try {
       const logsRole = await this.ensureLogsRole(guild);
       const category = await this.ensureCategory(guild, logsRole);
-      const result = {} as Record<LogType, string>;
+      const result = {} as Record<ActiveLogType, string>;
 
-      for (const logType of LOG_TYPES) {
+      for (const logType of ACTIVE_LOG_TYPES) {
         const channelName = LOG_CHANNEL_NAMES[logType];
         let channel = guild.channels.cache.find(
           (c) => c.name === channelName && c.type === ChannelType.GuildText,

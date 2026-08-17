@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { prisma, getOrCreateGuild, getGuildConfig } from "./index.js";
+import { prisma, getOrCreateGuild, getGuildConfig, updateGuildConfig } from "./index.js";
 
 const runIntegration = Boolean(process.env.DATABASE_URL);
 
@@ -33,5 +33,11 @@ describe.skipIf(!runIntegration)("database integration", () => {
       update: { cash: 200 },
     });
     expect(updated.cash).toBe(200);
+  });
+
+  it("sees the patch on the next getGuildConfig after update", async () => {
+    await updateGuildConfig(guildId, { locale: "en" });
+    const cfg = await getGuildConfig(guildId);
+    expect(cfg.locale).toBe("en");
   });
 });

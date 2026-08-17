@@ -15,6 +15,22 @@ export const LOG_TYPES = [
 
 export type LogType = (typeof LOG_TYPES)[number];
 
+/** Parked with archive/ai-brain — kept in LOG_TYPES for existing guild rows. */
+export const PARKED_LOG_TYPES = ["ai", "brain"] as const;
+export type ParkedLogType = (typeof PARKED_LOG_TYPES)[number];
+
+const parkedLogSet = new Set<string>(PARKED_LOG_TYPES);
+
+export function isParkedLogType(logType: string): logType is ParkedLogType {
+  return parkedLogSet.has(logType);
+}
+
+export const ACTIVE_LOG_TYPES = LOG_TYPES.filter(
+  (logType): logType is Exclude<LogType, ParkedLogType> => !parkedLogSet.has(logType),
+);
+
+export type ActiveLogType = (typeof ACTIVE_LOG_TYPES)[number];
+
 export const LOG_CHANNEL_NAMES: Record<LogType, string> = {
   join_leave: "logs-join-leave",
   message: "logs-message",

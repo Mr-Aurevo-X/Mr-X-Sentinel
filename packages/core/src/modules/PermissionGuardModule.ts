@@ -1,7 +1,8 @@
 import { AuditLogEvent, type Client, type Guild } from "discord.js";
 import { hasDangerousPermissions } from "@sentinel/shared";
-import { isWhitelisted, prisma } from "@sentinel/database";
+import { getGuildConfig, isWhitelisted, prisma } from "@sentinel/database";
 import { modLogService } from "../services/ModLogService.js";
+import { shouldRunPermissionGuard } from "./featureGates.js";
 
 export class PermissionGuardModule {
   constructor(private client: Client) {}
@@ -20,6 +21,9 @@ export class PermissionGuardModule {
     guild: Guild,
   ): Promise<void> {
     if (!entry.executorId) return;
+
+    const config = await getGuildConfig(guild.id);
+    if (!shouldRunPermissionGuard(config.features)) return;
 
     const wl = await isWhitelisted(guild.id, entry.executorId, guild.ownerId);
     if (wl.whitelisted) return;

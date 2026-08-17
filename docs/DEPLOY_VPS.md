@@ -1,6 +1,6 @@
 # Déploiement VPS — Mr-X Sentinel
 
-Ubuntu 22.04/24.04.
+Ubuntu 22.04/24.04. **Node.js 20 ou 22 LTS** si tu lances `deploy-commands` hors Docker.
 
 ## Profils RAM
 
@@ -8,7 +8,8 @@ Ubuntu 22.04/24.04.
 |--------|----------|----------------|
 | **core** | postgres, redis, bot, worker, dashboard | 2 Go min |
 | **+ music** | + lavalink | +512 Mo |
-| **+ brain** | + brain (PyTorch) | +1 Go |
+
+IA / Brain (PyTorch) sont parkés dans `archive/ai-brain/` — pas de profile Compose live.
 
 ## 1. Docker
 
@@ -42,9 +43,6 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 
 # Avec musique
 docker compose -f docker-compose.prod.yml --profile music --env-file .env up -d --build
-
-# Avec Brain ML
-docker compose -f docker-compose.prod.yml --profile brain --env-file .env up -d --build
 ```
 
 ## 4. Vérifications

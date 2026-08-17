@@ -8,6 +8,8 @@ export * from "./services/ModLogService.js";
 export * from "./services/LogService.js";
 export * from "./services/LogProvisioningService.js";
 export * from "./modules/registry.js";
+export * from "./modules/featureGates.js";
+export * from "./configCache.js";
 export * from "./modules/economy/EconomyService.js";
 export * from "./modules/levels/LevelsService.js";
 export * from "./modules/levels/levelMath.js";

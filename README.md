@@ -4,7 +4,7 @@ Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tick
 
 **Dépôt :** https://github.com/Mr-Aurevo-X/Mr-X-Sentinel
 
-**Prérequis :** Node.js 20+ · pnpm 9.15+ · Docker Desktop (PostgreSQL, Redis, Lavalink)
+**Prérequis :** Node.js **20 ou 22 LTS** (pas 24+) · pnpm 9.15+ · Docker Desktop (PostgreSQL, Redis, Lavalink)
 
 ---
 
@@ -31,7 +31,7 @@ Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tick
 |--------|-------------|------------|
 | **Sécurité** | Anti-nuke, anti-raid, automod, lockdown, snapshots | `/config feature` (modules par défaut on) |
 | **Modération** | Slash dédiés + `/panel` interactif (boutons) + `/nuke` (clone salon) | `moderation` (défaut: on) |
-| **Logs** | 12 types, catégorie **Logs Sentinel**, rôle **Logs** | `/setup create_logs:true` ou `/logs create` |
+| **Logs** | 10 types actifs, catégorie **Logs Sentinel**, rôle **Logs** | `/setup create_logs:true` ou `/logs create` |
 | **Communauté** | XP (embed level-up, streak), welcome/goodbye, polls, giveaways, reaction roles | `community`, `levels` |
 | **Économie** | Portefeuille, banque, **$**, daily/weekly/monthly, hub `/eco`, catalogue `/buy` + boutique rôles `/shop` | `economy` |
 | **Fun** | Coinflip, slots, roulette, **blackjack interactif** + hubs `/gamble` `/minijeux` (boutons) | `fun` |
@@ -48,7 +48,7 @@ Parité legacy : [`docs/LEGACY_FEATURE_MATRIX.md`](docs/LEGACY_FEATURE_MATRIX.md
 
 ## Prérequis
 
-1. **Node.js 20+** — https://nodejs.org/
+1. **Node.js 20 ou 22 LTS** — https://nodejs.org/ (CI et Docker utilisent Node 20 ; Node 24+ casse `better-sqlite3` / scripts natifs)
 2. **pnpm 9.15+** — `corepack enable` puis `corepack prepare pnpm@9.15.0 --activate`, ou `npm i -g pnpm`
 3. **Docker Desktop** (Windows/macOS/Linux) — https://docs.docker.com/desktop/
 4. **Application Discord** — [Developer Portal](https://discord.com/developers/applications/1507473175498457129)
@@ -327,9 +327,9 @@ Les logs ne sont pas recréés par le template ; utilisez `create_logs:true` sur
 
 ## Logs
 
-12 types enregistrés dans la catégorie **Logs Sentinel** :
+10 types provisionnés dans la catégorie **Logs Sentinel** (`logs-ai` / `logs-brain` ne sont plus créés ; IA/Brain parkés dans [`archive/ai-brain/`](archive/ai-brain/)) :
 
-`join_leave` · `message` · `moderation` · `tickets` · `automod` · `security` · `brain` · `economy` · `levels` · `music` · `ai` · `admin`
+`join_leave` · `message` · `moderation` · `tickets` · `automod` · `security` · `economy` · `levels` · `music` · `admin`
 
 Salons nommés `logs-<type>` (ex. `logs-moderation`). Rôle **Logs** créé automatiquement.
 
@@ -344,8 +344,9 @@ Mr-X-Sentinel/
 ├── apps/
 │   ├── bot/                    # Processus Discord (discord.js)
 │   │   └── src/
-│   │       ├── commands/       # Slash : definitions, permissions, handlers/
-│   │       ├── interaction-router.ts  # Boutons, selects, modals
+│   │       ├── commands/       # Slash : registry, definitions/, permissions, handlers/
+│   │       ├── interaction-router.ts  # Dispatch composants
+│   │       ├── interactions/   # Handlers boutons par domaine (mod, ticket, hub, logs)
 │   │       ├── client.ts       # Intents, listeners, modules core
 │   │       ├── views/          # UI Discord (panels, hubs)
 │   │       ├── ui/embeds.ts    # Charte embeds
@@ -372,7 +373,7 @@ Mr-X-Sentinel/
 └── docker-compose.yml          # Postgres, Redis, Lavalink
 ```
 
-**Flux interaction bot :** slash → `commands/index.ts` (`assertSlashAccess`) → handler → `@sentinel/core` · composant → `interaction-router.ts` (`assertComponentAccess` + anticheat économie).
+**Flux interaction bot :** slash → `commands/index.ts` (`assertSlashAccess`) → `commands/registry.ts` → `withCommand` → handler · composant → `interaction-router.ts` (`assertComponentAccess` + anticheat économie).
 
 **Scripts racine utiles :**
 

@@ -5,10 +5,16 @@ import type { SnapshotPayload } from "@sentinel/shared";
 import { prisma } from "@sentinel/database";
 import { logger } from "../logger.js";
 import { getRedis } from "../redis.js";
+import { assertRestorePayloadGuild } from "./restoreGuard.js";
 
-const connection = { connection: getRedis() };
+let restoreQueue: Queue | null = null;
 
-export const restoreQueue = new Queue("snapshot-restore", connection);
+function getRestoreQueue(): Queue {
+  if (!restoreQueue) {
+    restoreQueue = new Queue("snapshot-restore", { connection: getRedis() });
+  }
+  return restoreQueue;
+}
 
 export function startRestoreWorker(getClient: () => Client): Worker {
   return new Worker(
@@ -25,10 +31,11 @@ export function startRestoreWorker(getClient: () => Client): Worker {
       if (!snap) throw new Error("Snapshot not found for this guild");
 
       const payload = snap.payload as unknown as SnapshotPayload;
+      assertRestorePayloadGuild(payload.guildId, guild.id);
       await restoreFromSnapshot(guild, payload);
       logger.info({ guildId, snapshotId }, "Snapshot restore completed");
     },
-    { ...connection, concurrency: 1 },
+    { connection: getRedis(), concurrency: 1 },
   );
 }
 
@@ -85,7 +92,7 @@ function delay(ms: number): Promise<void> {
 }
 
 export async function enqueueRestore(guildId: string, snapshotId: string): Promise<string> {
-  const job = await restoreQueue.add(
+  const job = await getRestoreQueue().add(
     "restore",
     { guildId, snapshotId },
     { attempts: 3, backoff: { type: "exponential", delay: 5000 } },

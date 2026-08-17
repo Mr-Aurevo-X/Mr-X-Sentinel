@@ -7,7 +7,7 @@ import {
   ButtonStyle,
   EmbedBuilder,
 } from "discord.js";
-import { customId, BRAND_COLOR } from "@sentinel/shared";
+import { assertSafePlayQuery, customId, BRAND_COLOR } from "@sentinel/shared";
 import { logService } from "@sentinel/core";
 import type { Client as DjsClient } from "discord.js";
 
@@ -157,6 +157,7 @@ export class MusicManager {
     textChannelId: string,
   ): Promise<{ embed: EmbedBuilder }> {
     if (!this.kazagumo) throw new Error("Lavalink non initialisé (docker compose up).");
+    assertSafePlayQuery(query);
     const guildId = voiceChannel.guild.id;
     let player = this.getPlayer(guildId);
     if (!player) {

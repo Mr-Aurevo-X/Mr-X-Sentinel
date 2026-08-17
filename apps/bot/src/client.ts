@@ -16,6 +16,10 @@ import {
   logger,
   levelsService,
   getGuildFeatures,
+  loadGuildContext,
+  bindGuildConfigPublish,
+  startConfigCacheInvalidation,
+  shouldRunSnapshots,
   logService,
   giveawayService,
   reactionRoleService,
@@ -55,6 +59,8 @@ export function createClient(): Client {
   client.once(Events.ClientReady, async (c) => {
     await runStartupHealthChecks();
     await getRedis().connect().catch(() => getRedis());
+    bindGuildConfigPublish();
+    startConfigCacheInvalidation();
     await musicManager.init(c).catch((err) => {
       logger.warn({ err }, "Lavalink indisponible — musique désactivée");
     });
@@ -68,7 +74,11 @@ export function createClient(): Client {
     setInterval(
       () => {
         for (const guild of c.guilds.cache.values()) {
-          void snapshotService.capture(guild, "auto").catch(() => undefined);
+          void (async () => {
+            const features = await getGuildFeatures(guild.id);
+            if (!shouldRunSnapshots(features)) return;
+            await snapshotService.capture(guild, "auto");
+          })().catch(() => undefined);
         }
       },
       6 * 60 * 60 * 1000,
@@ -81,6 +91,8 @@ export function createClient(): Client {
 
   client.on(Events.GuildCreate, async (guild) => {
     await getOrCreateGuild(guild.id);
+    const features = await getGuildFeatures(guild.id);
+    if (!shouldRunSnapshots(features)) return;
     await snapshotService.capture(guild, "initial").catch(() => undefined);
   });
 
@@ -107,7 +119,7 @@ export function createClient(): Client {
 
   client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot || !message.guild) return;
-    const features = await getGuildFeatures(message.guild.id);
+    const { features } = await loadGuildContext(message.guild.id);
     if (!features.levels) return;
     const result = await levelsService.addMessageXp(
       message.guild.id,

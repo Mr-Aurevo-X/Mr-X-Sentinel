@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction } from "discord.js";
+import type { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -8,11 +8,14 @@ import {
   type TextChannel,
 } from "discord.js";
 import { customId } from "@sentinel/shared";
-import { getGuildConfig, updateGuildConfig } from "@sentinel/database";
+import { getGuildConfig, prisma, updateGuildConfig } from "@sentinel/database";
 import { BRAND_COLOR, isParkedFeatureKey, type GuildFeatures } from "@sentinel/shared";
 import { buildConfigViewEmbed, buildSimpleEmbed, successEmbed } from "../../ui/embeds.js";
 import type { CommandReply } from "../middleware.js";
 import { handleAdminShopAdd, handleAdminShopRemove } from "./tickets.js";
+import { handleAdminPanel, handleAdminRoles } from "./extended.js";
+import { buildWelcomeSetupRows } from "../../views/WelcomeSetupView.js";
+import { musicManager } from "../../music/MusicManager.js";
 
 export async function handleConfig(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
   const sub = interaction.options.getSubcommand();
@@ -37,7 +40,6 @@ export async function handleConfig(interaction: ChatInputCommandInteraction): Pr
     return { embeds: [successEmbed("Welcome", "Configuration bienvenue mise à jour.")] };
   }
   if (sub === "welcome_panel") {
-    const { buildWelcomeSetupRows } = await import("../../views/WelcomeSetupView.js");
     return {
       embeds: [buildSimpleEmbed("Setup Welcome", "Crée la catégorie **COMMUNAUTÉ** et les salons bienvenue/départs.")],
       components: buildWelcomeSetupRows(),
@@ -97,11 +99,9 @@ export async function handleAdmin(interaction: ChatInputCommandInteraction): Pro
   if (sub === "shop_add") return handleAdminShopAdd(interaction);
   if (sub === "shop_remove") return handleAdminShopRemove(interaction);
   if (sub === "panel") {
-    const { handleAdminPanel } = await import("./extended.js");
     return handleAdminPanel(interaction);
   }
   if (sub === "roles") {
-    const { handleAdminRoles } = await import("./extended.js");
     return handleAdminRoles(interaction);
   }
   throw new Error("Sous-commande inconnue.");
@@ -133,7 +133,6 @@ export async function handleSuggest(interaction: ChatInputCommandInteraction): P
 
 export async function handleClearwarn(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
   const user = interaction.options.getUser("user", true);
-  const { prisma } = await import("@sentinel/database");
   await prisma.guildMemberRecord.upsert({
     where: { guildId_userId: { guildId: interaction.guild!.id, userId: user.id } },
     create: { guildId: interaction.guild!.id, userId: user.id, warnCount: 0 },
@@ -143,7 +142,7 @@ export async function handleClearwarn(interaction: ChatInputCommandInteraction):
 }
 
 export async function handleNickname(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
-  const member = interaction.options.getMember("user") as import("discord.js").GuildMember | null;
+  const member = interaction.options.getMember("user") as GuildMember | null;
   if (!member) throw new Error("Membre introuvable");
   const name = interaction.options.getString("name", true);
   await member.setNickname(name, `Par ${interaction.user.tag}`);
@@ -154,11 +153,10 @@ export async function handlePlayMusic(
   interaction: ChatInputCommandInteraction,
   client: import("discord.js").Client,
 ): Promise<CommandReply> {
-  const member = interaction.member as import("discord.js").GuildMember;
+  const member = interaction.member as GuildMember;
   const voice = member.voice.channel;
   if (!voice) throw new Error("Rejoins un salon vocal d'abord.");
   const query = interaction.options.getString("query", true);
-  const { musicManager } = await import("../../music/MusicManager.js");
   const { embed } = await musicManager.play(client, voice, query, interaction.user.id, interaction.channelId);
   return {
     embeds: [embed],
