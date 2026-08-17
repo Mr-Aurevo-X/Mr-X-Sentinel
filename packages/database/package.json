@@ -18,7 +18,7 @@
     "migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "push": "dotenv -e ../../.env -- prisma db push",
     "migrate:deploy": "prisma migrate deploy",
-    "test": "vitest run",
+    "test": "vitest run --exclude src/integration.test.ts",
     "test:integration": "vitest run src/integration.test.ts"
   },
   "dependencies": {
