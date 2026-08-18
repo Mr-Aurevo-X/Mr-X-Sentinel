@@ -1,6 +1,6 @@
 {
   "name": "mr-x-sentinel",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "Apache-2.0",
   "private": true,
   "description": "Mr-X Sentinel — plateforme Discord unifiée (sécurité, mod, logs, économie, XP, tickets, musique)",

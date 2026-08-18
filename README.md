@@ -28,7 +28,7 @@ Pour un bot **allumé en permanence**, il te faut **ton** VPS (machine distante 
 
 ## Statut : dépôt figé
 
-Le développement de **cette** version — dépôt [Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main` — est **terminé**.
+Le développement de **cette** version — dépôt [Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main`, release **[v2.0.0](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel/releases/tag/v2.0.0)** — est **terminé**. `v1.0.0` est l’ancienne photographie (avant dashboard / ACK / arm).
 
 - **Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt : pas de correctif, pas de revue de PR, pas de support.
 - **Après publication publique :** aucun correctif de sa part. Ce dépôt est la photographie de ce qui a été publié. La suite se fait uniquement sur les forks.
