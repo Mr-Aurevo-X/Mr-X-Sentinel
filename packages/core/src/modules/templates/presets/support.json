@@ -1,0 +1,126 @@
+{
+  "key": "support",
+  "label": "Support",
+  "description": "Serveur orienté support client",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Support Lead",
+      "moderator"
+    ],
+    [
+      "Senior Support",
+      "staff"
+    ],
+    [
+      "Support Agent",
+      "support"
+    ],
+    [
+      "Trial Support",
+      "support"
+    ],
+    [
+      "VIP Client",
+      "vip"
+    ],
+    [
+      "Client",
+      "member"
+    ],
+    [
+      "Visitor",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📌 Informations",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "status",
+        "changelog",
+        "faq"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🆘 Support",
+      "text": [
+        "open-ticket",
+        "common-issues",
+        "known-bugs",
+        "tutorials",
+        "suggestions"
+      ],
+      "voice": [
+        "Support VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "💬 Communauté",
+      "text": [
+        "general",
+        "off-topic",
+        "feedback"
+      ],
+      "voice": [
+        "Community VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🔒 Team Support",
+      "text": [
+        "staff-chat",
+        "tickets-private",
+        "incident-log",
+        "client-feedback",
+        "staff-resources"
+      ],
+      "voice": [
+        "Staff VC",
+        "Briefing Room"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Support Lead",
+        "Senior Support",
+        "Support Agent",
+        "Trial Support"
+      ]
+    },
+    {
+      "name": "🔐 Direction",
+      "text": [
+        "management",
+        "kpi",
+        "private-planning"
+      ],
+      "voice": [
+        "Direction VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Support Lead"
+      ]
+    }
+  ]
+}

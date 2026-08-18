@@ -1,0 +1,75 @@
+{
+  "key": "minimal",
+  "label": "Minimal",
+  "description": "Serveur léger et simple",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Moderator",
+      "moderator"
+    ],
+    [
+      "Booster",
+      "booster"
+    ],
+    [
+      "Member",
+      "member"
+    ],
+    [
+      "Visitor",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📌 Infos",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "💬 Général",
+      "text": [
+        "general",
+        "media",
+        "bot-commands"
+      ],
+      "voice": [
+        "General VC",
+        "AFK"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🔒 Staff",
+      "text": [
+        "staff-chat",
+        "staff-logs"
+      ],
+      "voice": [
+        "Staff VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Moderator"
+      ]
+    }
+  ]
+}

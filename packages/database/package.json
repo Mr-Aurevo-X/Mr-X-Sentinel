@@ -1,0 +1,35 @@
+{
+  "name": "@sentinel/database",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "generate": "dotenv -e ../../.env -- prisma generate",
+    "migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "push": "dotenv -e ../../.env -- prisma db push",
+    "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
+    "test": "vitest run --exclude src/integration.test.ts",
+    "test:integration": "vitest run src/integration.test.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "@sentinel/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^11.0.0",
+    "prisma": "^6.1.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

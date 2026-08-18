@@ -1,0 +1,14 @@
+# Configuration Gitleaks — étend les règles par défaut.
+# Les valeurs ci-dessous sont des placeholders factices utilisés par la CI,
+# pas de vrais secrets.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholders CI (fausses valeurs, pas des secrets)"
+regexes = [
+  '''123456789012345678''',
+  '''ci-build-placeholder-secret-32chars-min''',
+  '''ci-build-not-used''',
+]

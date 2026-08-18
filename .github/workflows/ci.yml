@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  NEXTAUTH_SECRET: ci-build-placeholder-secret-32chars-min
+  NEXTAUTH_URL: http://localhost:3000
+  DISCORD_CLIENT_ID: "123456789012345678"
+  DISCORD_CLIENT_SECRET: ci-build-not-used
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+  REDIS_URL: redis://localhost:6379
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - run: pnpm verify
+      - name: Prisma migrate deploy
+        working-directory: packages/database
+        run: pnpm exec prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      - run: pnpm test:integration
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      - run: pnpm verify:smoke

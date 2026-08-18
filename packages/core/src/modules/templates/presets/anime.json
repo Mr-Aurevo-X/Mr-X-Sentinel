@@ -1,0 +1,151 @@
+{
+  "key": "anime",
+  "label": "Anime",
+  "description": "Serveur anime / manga",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Moderator",
+      "moderator"
+    ],
+    [
+      "Senpai",
+      "staff"
+    ],
+    [
+      "Event Team",
+      "event"
+    ],
+    [
+      "Booster",
+      "booster"
+    ],
+    [
+      "VIP Otaku",
+      "vip"
+    ],
+    [
+      "Otaku",
+      "member"
+    ],
+    [
+      "New Otaku",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "🌸 Accueil",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "bot-commands",
+        "roles-reaction"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "📺 Anime",
+      "text": [
+        "general-anime",
+        "current-season",
+        "recommendations",
+        "spoilers",
+        "reviews",
+        "news"
+      ],
+      "voice": [
+        "Anime Watch Party",
+        "Discussion VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "📖 Manga & LN",
+      "text": [
+        "general-manga",
+        "light-novels",
+        "manhwa",
+        "manga-recs",
+        "manga-spoilers"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🎨 Créations",
+      "text": [
+        "fan-art",
+        "cosplay",
+        "edits",
+        "amv",
+        "wallpapers"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "💬 Off-Topic",
+      "text": [
+        "off-topic",
+        "memes",
+        "gaming",
+        "music",
+        "media"
+      ],
+      "voice": [
+        "Chill VC",
+        "Gaming VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🎉 Events",
+      "text": [
+        "watch-party",
+        "contests",
+        "polls",
+        "waifu-wars",
+        "event-chat"
+      ],
+      "voice": [
+        "Watch Party",
+        "Karaoke",
+        "Event VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🔒 Staff Anime",
+      "text": [
+        "staff-chat",
+        "reports",
+        "event-planning",
+        "private-notes"
+      ],
+      "voice": [
+        "Staff VC"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Moderator",
+        "Senpai",
+        "Event Team"
+      ]
+    }
+  ]
+}

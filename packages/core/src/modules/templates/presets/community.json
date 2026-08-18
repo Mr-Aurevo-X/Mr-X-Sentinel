@@ -1,0 +1,142 @@
+{
+  "key": "community",
+  "label": "Community",
+  "description": "Serveur communautaire complet",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Moderator",
+      "moderator"
+    ],
+    [
+      "Helper",
+      "staff"
+    ],
+    [
+      "Event Team",
+      "event"
+    ],
+    [
+      "Booster",
+      "booster"
+    ],
+    [
+      "VIP",
+      "vip"
+    ],
+    [
+      "Partner",
+      "partner"
+    ],
+    [
+      "Member",
+      "member"
+    ],
+    [
+      "Visitor",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📌 Informations",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "changelog",
+        "faq",
+        "partners"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "💬 Général",
+      "text": [
+        "general",
+        "off-topic",
+        "media",
+        "memes",
+        "bot-commands"
+      ],
+      "voice": [
+        "General VC",
+        "Chill VC",
+        "AFK"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🎉 Events",
+      "text": [
+        "events",
+        "giveaways",
+        "polls",
+        "birthday"
+      ],
+      "voice": [
+        "Event VC",
+        "Karaoke"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🌟 VIP",
+      "text": [
+        "vip-chat",
+        "vip-media"
+      ],
+      "voice": [
+        "VIP Lounge"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "VIP",
+        "Booster"
+      ]
+    },
+    {
+      "name": "💡 Suggestions",
+      "text": [
+        "suggestions",
+        "feedback",
+        "bug-report"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🛠 Staff",
+      "text": [
+        "staff-chat",
+        "staff-logs",
+        "staff-decisions",
+        "mod-queue",
+        "appeals"
+      ],
+      "voice": [
+        "Staff VC",
+        "Staff AFK"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Moderator",
+        "Helper"
+      ]
+    }
+  ]
+}

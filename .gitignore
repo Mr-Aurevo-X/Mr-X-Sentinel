@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.log
+.DS_Store
+coverage/
+.turbo/
+*.tsbuildinfo
+prisma/*.db

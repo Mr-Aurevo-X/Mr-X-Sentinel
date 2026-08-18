@@ -1,0 +1,133 @@
+{
+  "key": "development",
+  "label": "Development",
+  "description": "Serveur dev / coding / projet",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Lead Dev",
+      "admin"
+    ],
+    [
+      "Maintainer",
+      "moderator"
+    ],
+    [
+      "Dev Helper",
+      "staff"
+    ],
+    [
+      "Contributor",
+      "member"
+    ],
+    [
+      "Tester",
+      "support"
+    ],
+    [
+      "Designer",
+      "creator"
+    ],
+    [
+      "Visitor",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📢 Projet",
+      "text": [
+        "welcome",
+        "rules",
+        "announcements",
+        "roadmap",
+        "changelog",
+        "documentation"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "💻 Développement",
+      "text": [
+        "general-dev",
+        "frontend",
+        "backend",
+        "database",
+        "devops",
+        "resources"
+      ],
+      "voice": [
+        "Dev VC",
+        "Pair Programming"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🎨 Design",
+      "text": [
+        "ui-ux",
+        "assets",
+        "design-review",
+        "figma"
+      ],
+      "voice": [
+        "Design VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🧪 Tests & QA",
+      "text": [
+        "qa",
+        "bug-reports",
+        "release-notes",
+        "staging",
+        "production-issues"
+      ],
+      "voice": [
+        "QA VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "💡 Idées",
+      "text": [
+        "feature-requests",
+        "brainstorm",
+        "off-topic"
+      ],
+      "voice": [
+        "Brainstorm VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🔒 Core Team",
+      "text": [
+        "core-chat",
+        "architecture",
+        "security",
+        "private-issues",
+        "planning"
+      ],
+      "voice": [
+        "Core VC",
+        "Architecture Review"
+      ],
+      "private_for": [
+        "Founder",
+        "Lead Dev",
+        "Maintainer",
+        "Dev Helper"
+      ]
+    }
+  ]
+}

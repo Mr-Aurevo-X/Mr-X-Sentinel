@@ -1,0 +1,146 @@
+{
+  "key": "creator",
+  "label": "Creator",
+  "description": "Serveur créateur / streamer",
+  "roles": [
+    [
+      "Founder",
+      "founder"
+    ],
+    [
+      "Admin",
+      "admin"
+    ],
+    [
+      "Moderator",
+      "moderator"
+    ],
+    [
+      "Content Manager",
+      "staff"
+    ],
+    [
+      "Editor",
+      "staff"
+    ],
+    [
+      "Creator",
+      "creator"
+    ],
+    [
+      "Booster",
+      "booster"
+    ],
+    [
+      "VIP",
+      "vip"
+    ],
+    [
+      "Fan",
+      "member"
+    ],
+    [
+      "Visitor",
+      "visitor"
+    ],
+    [
+      "Muted",
+      "muted"
+    ]
+  ],
+  "categories": [
+    {
+      "name": "📣 Créateur",
+      "text": [
+        "welcome",
+        "announcements",
+        "schedule",
+        "new-videos",
+        "new-streams",
+        "partnerships"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "💜 Communauté",
+      "text": [
+        "general",
+        "off-topic",
+        "fan-art",
+        "clips",
+        "memes",
+        "media"
+      ],
+      "voice": [
+        "Community VC",
+        "After Stream",
+        "Chill VC"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "🎉 Events",
+      "text": [
+        "events",
+        "giveaways",
+        "challenges",
+        "polls"
+      ],
+      "voice": [
+        "Event Room",
+        "Watch Party"
+      ],
+      "private_for": []
+    },
+    {
+      "name": "⭐ VIP",
+      "text": [
+        "vip-chat",
+        "exclusive-content",
+        "vip-media"
+      ],
+      "voice": [
+        "VIP Lounge"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "VIP",
+        "Booster"
+      ]
+    },
+    {
+      "name": "💡 Feedback",
+      "text": [
+        "suggestions",
+        "video-ideas",
+        "feedback"
+      ],
+      "voice": [],
+      "private_for": []
+    },
+    {
+      "name": "🎥 Production",
+      "text": [
+        "ideas",
+        "production-chat",
+        "editing",
+        "brand-deals",
+        "planning"
+      ],
+      "voice": [
+        "Production VC",
+        "Recording Room"
+      ],
+      "private_for": [
+        "Founder",
+        "Admin",
+        "Moderator",
+        "Content Manager",
+        "Editor",
+        "Creator"
+      ]
+    }
+  ]
+}
