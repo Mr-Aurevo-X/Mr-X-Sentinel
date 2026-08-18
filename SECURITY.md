@@ -2,7 +2,7 @@
 
 ## Versions supportées
 
-**Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt. Aucune version n’est maintenue. Le dépôt original ([Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main`) est figé : c’est la photographie de ce qui a été publié. Après publication publique, aucun correctif de sa part. La suite se fait uniquement sur les forks.
+**Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt. Aucune version n’est maintenue. Le dépôt original ([Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main`, release v2.0.0) **reste public** pour que chacun récupère le code. C’est la photographie de ce qui a été publié. La suite se fait uniquement sur les forks.
 
 Les forks et instances auto-hébergées sont sous la **seule** responsabilité de leur opérateur.
 

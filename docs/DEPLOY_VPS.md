@@ -1,8 +1,8 @@
 # Déploiement VPS — Mr-X Sentinel
 
-Ce guide est **optionnel**. Sentinel n’est pas un service hébergé : tu clones et tu tournes chez toi.
+Ce guide est **optionnel**. Sentinel n’est pas un service hébergé : tu clones le dépôt public et tu fais tourner **ton** instance.
 
-- **[FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)** : hébergement **local** (cockpit dashboard). Le bot s’arrête si ta machine s’éteint. Ce n’est **pas** du 24/7.
+- **[FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)** : essai **local** seulement (ta machine, cockpit). Pas un hébergement recommandé, pas du 24/7.
 - **Ton VPS** : machine distante que tu gères, si tu veux un bot allumé en permanence.
 
 Ce n’est pas le produit Sentinel.

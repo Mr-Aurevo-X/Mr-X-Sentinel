@@ -368,7 +368,7 @@ export function buildHelpEmbed(
       "**Modération :** `/ban` `/kick` `/mute` `/warn` `/clear` `/panel`\n**Admin :** `/admin panel` `/admin roles` `/admin announce` `/admin shop_add`\n**Salons :** `/channel slowmode|lock|unlock`\n**Tickets :** `/ticket setup|close|claim|rename`\n**Automod :** `/automod panel`\n**Logs :** `/logs create`\n**Commandes perso :** `/addcommand` `/removecommand`",
     owner:
       "**Dashboard :** `/dashboard`\n**Config :** `/config view|feature|economy`\n**Niveaux :** `/levels channel` `/levels roles`\n**Templates :** `/template panel`\n**Sécurité :** `/security whitelist_add` puis `/security arm`",
-    bot_owner: "**Global :** `/owner` · `/security whitelist_*` · `/backup` · `/sentinel`",
+    bot_owner: "**Global :** `/owner` · `/backup` · `/sentinel`",
   };
   return baseEmbed({
     title: `Aide — ${tier === "bot_owner" ? "Bot owner" : tier.charAt(0).toUpperCase() + tier.slice(1)}`,

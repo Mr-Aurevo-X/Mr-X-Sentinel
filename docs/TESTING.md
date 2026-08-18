@@ -12,8 +12,10 @@ pnpm test:integration    # Prisma contre DATABASE_URL (CI ou local)
 
 | Package | Fichiers |
 |---------|----------|
-| `@sentinel/core` | ThreatEngine, levelMath, FunService, EconomyService, automodText, economyParity |
-| `@sentinel/shared` | config-schema, permissions |
+| `@sentinel/core` | ThreatEngine, featureGates, restore, snapshots, économie / fun |
+| `@sentinel/shared` | config-schema, cookie-header, features |
+| `@sentinel/bot` | ACK slash, `/dashboard`, middleware |
+| `@sentinel/dashboard` | OAuth guilds, cookies |
 
 ## Intégration base de données
 
@@ -21,7 +23,7 @@ Nécessite Postgres accessible :
 
 ```bash
 export DATABASE_URL=postgresql://mrx:mrx@localhost:5433/sentinel
-pnpm db:push
+pnpm db:migrate
 pnpm test:integration
 ```
 

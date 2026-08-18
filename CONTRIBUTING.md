@@ -6,7 +6,7 @@
 - Pas de patch, suggestion de code, ni issue « voici un fix ».
 - Rien de tout cela ne sera examiné, commenté ou mergé.
 
-**Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt. Après publication publique, aucun correctif de sa part. Ce dépôt est la photographie de ce qui a été publié. La suite se fait uniquement sur les forks. Voir le [README — Statut](README.md#statut--dépôt-figé).
+**Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt. Le dépôt reste public pour cloner, forker et faire tourner **votre** instance. La suite se fait uniquement sur les forks. Voir le [README — Statut](README.md#statut--dépôt-figé).
 
 ## Forks — forkez comme vous voulez (votre dépôt, pas celui-ci)
 

@@ -1,4 +1,4 @@
-# Skip docker-compose.prod.yml: the Prisma migrate path is still broken.
+# Guest runs the Node bot. Postgres/Redis come from the host compose, not docker-compose.prod.yml.
 runtime: node
 panel:
   start: pnpm --filter @sentinel/dashboard start

@@ -30,8 +30,10 @@ Pour un bot **allumé en permanence**, il te faut **ton** VPS (machine distante 
 
 Le développement de **cette** version — dépôt [Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main`, release **[v2.0.0](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel/releases/tag/v2.0.0)** — est **terminé**. `v1.0.0` est l’ancienne photographie (avant dashboard / ACK / arm).
 
+Le dépôt **reste public et disponible** (pas archivé) : code, docs, release, licence. Chacun clone ou fork, crée **son** appli Discord, et fait tourner **son** bot. Il n’y a pas d’instance officielle à inviter.
+
 - **Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt : pas de correctif, pas de revue de PR, pas de support.
-- **Après publication publique :** aucun correctif de sa part. Ce dépôt est la photographie de ce qui a été publié. La suite se fait uniquement sur les forks.
+- **Publication :** ce dépôt est la photographie de ce qui a été publié. La suite se fait uniquement sur les forks.
 - **Aucune contribution n’est demandée ni autorisée sur ce dépôt.** Pas de PR, pas de patch, pas d’issue « je propose un fix ». Elles ne seront pas examinées ni mergées.
 - **Forkez comme vous voulez** (Apache-2.0) : copiez, réutilisez, modifiez **de votre côté**. Prenez ce que vous voulez, jetez le reste. Les obligations Apache (conserver la [licence](LICENSE) et les mentions du [`NOTICE`](NOTICE), indiquer vos modifications) s’appliquent **uniquement** aux fichiers que vous redistribuez, pas à ceux que vous retirez. N’envoyez pas de PR ici. Un clin d’œil à l’auteur et à Cursor est bienvenu — ce n’est **pas** obligatoire.
 - Un fork, un binaire recompilé ou une instance tierce n’engagent **que** leur opérateur. En cas de litige, **seul ce dépôt original** fait foi de ce que Mr-Aurevo-X a publié.
@@ -83,7 +85,7 @@ Parité legacy : [`docs/LEGACY_FEATURE_MATRIX.md`](docs/LEGACY_FEATURE_MATRIX.md
 
 ## Prérequis
 
-1. **Node.js 20 ou 22 LTS** — https://nodejs.org/ (CI et Docker utilisent Node 20 ; Node 24+ casse `better-sqlite3` / scripts natifs)
+1. **Node.js 20 ou 22 LTS** — https://nodejs.org/ (CI et Docker utilisent Node 20 ; Node 23+ hors pin `engines`)
 2. **pnpm 9.15+** — `npm i -g pnpm@9` (recommandé). Alternative : `corepack enable` puis `corepack prepare pnpm@9.15.0 --activate` — Corepack fonctionne seulement sur Node ≤ 24 (retiré de Node 25+)
 3. **Docker Desktop** (Windows/macOS/Linux) — https://docs.docker.com/desktop/
 4. **Application Discord** — crée la tienne sur le [Developer Portal](https://discord.com/developers/applications)
@@ -514,7 +516,7 @@ Guides : [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md) · [`docs/RUNBOOK.md`](docs/
 
 [Apache License 2.0](LICENSE). Logiciel fourni « tel quel » (AS IS), sans garantie. L’auteur n’héberge pas d’instance officielle et ne collecte aucune donnée provenant des instances d’autrui.
 
-**Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt. Après publication publique, aucun correctif de sa part : ce dépôt est la photographie de ce qui a été publié. La suite se fait uniquement sur les forks.
+**Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt. Le dépôt reste public pour que chacun récupère le code et fasse tourner **son** instance. La suite se fait uniquement sur les forks.
 
 **Forkez comme vous voulez.** Copiez, réutilisez, modifiez **de votre côté**. Prenez ce que vous voulez, jetez le reste. Si vous redistribuez du code Apache, conservez la licence et les mentions du [`NOTICE`](NOTICE), et indiquez vos modifications (Apache-2.0, §4) — uniquement pour les fichiers que vous redistribuez. **Aucune contribution n’est demandée ni autorisée ici** — pas de PR sur cet original. Voir [Statut : dépôt figé](#statut--dépôt-figé).
 
