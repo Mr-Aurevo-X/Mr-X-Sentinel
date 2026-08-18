@@ -5,13 +5,17 @@ import type { SnapshotPayload } from "@sentinel/shared";
 import { prisma } from "@sentinel/database";
 import { logger } from "../logger.js";
 import { getRedis } from "../redis.js";
-import { assertRestorePayloadGuild } from "./restoreGuard.js";
+import { assertRestorePayloadGuild, assertRestorePayloadNotEmpty } from "./restoreGuard.js";
 import {
   GUILD_CATEGORY_TYPE,
+  idsToPurge,
   keepRestoreOverwrite,
+  liveIdsFromMap,
   orderChannelsForRestore,
+  parseRestoreMode,
   remapOverwriteTargetId,
   resolveRestoreParentId,
+  type RestoreMode,
 } from "./restoreMapping.js";
 
 let restoreQueue: Queue | null = null;
@@ -27,7 +31,12 @@ export function startRestoreWorker(getClient: () => Client): Worker {
   return new Worker(
     "snapshot-restore",
     async (job) => {
-      const { guildId, snapshotId } = job.data as { guildId: string; snapshotId: string };
+      const { guildId, snapshotId, mode: rawMode } = job.data as {
+        guildId: string;
+        snapshotId: string;
+        mode?: RestoreMode;
+      };
+      const mode = parseRestoreMode(rawMode);
       const client = getClient();
       const guild = await client.guilds.fetch(guildId).catch(() => null);
       if (!guild) throw new Error("Guild not found");
@@ -44,15 +53,20 @@ export function startRestoreWorker(getClient: () => Client): Worker {
 
       const payload = snap.payload as unknown as SnapshotPayload;
       assertRestorePayloadGuild(payload.guildId, guild.id);
-      await restoreFromSnapshot(guild, payload);
-      logger.info({ guildId, snapshotId }, "Snapshot restore completed");
+      assertRestorePayloadNotEmpty(payload);
+      await restoreFromSnapshot(guild, payload, mode);
+      logger.info({ guildId, snapshotId, mode }, "Snapshot restore completed");
     },
     { connection: getRedis(), concurrency: 1 },
   );
 }
 
 /** Restores roles, categories, channels, overwrites, and emojis. Bans and messages stay out of scope. */
-export async function restoreFromSnapshot(guild: Guild, payload: SnapshotPayload): Promise<void> {
+export async function restoreFromSnapshot(
+  guild: Guild,
+  payload: SnapshotPayload,
+  mode: RestoreMode = "repair",
+): Promise<void> {
   const idMap = new Map<string, string>();
   idMap.set(guild.id, guild.id);
 
@@ -149,6 +163,10 @@ export async function restoreFromSnapshot(guild: Guild, payload: SnapshotPayload
       logger.warn({ err, emojiName: emoji.name }, "Emoji restore failed");
     }
   }
+
+  if (mode === "full") {
+    await purgeExtras(guild, idMap);
+  }
 }
 
 function resolveChannelType(type: number): ChannelType.GuildText | ChannelType.GuildVoice | ChannelType.GuildCategory {
@@ -166,10 +184,71 @@ function delay(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-export async function enqueueRestore(guildId: string, snapshotId: string): Promise<string> {
+async function protectedRestoreIds(guild: Guild): Promise<{ roles: Set<string>; channels: Set<string> }> {
+  const botMember = guild.members.me;
+  const roles = new Set<string>([guild.id]);
+  if (botMember) {
+    for (const role of botMember.roles.cache.values()) roles.add(role.id);
+  }
+  for (const role of guild.roles.cache.values()) {
+    if (role.managed) roles.add(role.id);
+  }
+  const row = await prisma.guild.findUnique({
+    where: { id: guild.id },
+    select: { quarantineRoleId: true },
+  });
+  if (row?.quarantineRoleId) roles.add(row.quarantineRoleId);
+  const channels = new Set<string>();
+  for (const id of [guild.systemChannelId, guild.rulesChannelId, guild.publicUpdatesChannelId]) {
+    if (id) channels.add(id);
+  }
+  return { roles, channels };
+}
+
+async function purgeExtras(guild: Guild, idMap: Map<string, string>): Promise<void> {
+  const protectedIds = await protectedRestoreIds(guild);
+  const keep = liveIdsFromMap(idMap);
+  const liveChannels = [...guild.channels.cache.filter((ch) => !ch.isThread()).keys()];
+  const liveRoles = [...guild.roles.cache.keys()];
+
+  const channelPurge = idsToPurge(liveChannels, keep, protectedIds.channels);
+  const rolePurge = idsToPurge(liveRoles, keep, protectedIds.roles);
+
+  const categories: string[] = [];
+  const rest: string[] = [];
+  for (const id of channelPurge) {
+    const ch = guild.channels.cache.get(id);
+    if (ch?.type === ChannelType.GuildCategory) categories.push(id);
+    else rest.push(id);
+  }
+
+  for (const id of [...rest, ...categories]) {
+    const ch = guild.channels.cache.get(id);
+    if (!ch || ch.isThread() || !ch.deletable) continue;
+    await ch.delete("mr-x-sentinel: Snapshot restore full").catch((err) => {
+      logger.warn({ err, channelId: id }, "Channel purge failed");
+    });
+    await delay(400);
+  }
+
+  for (const id of rolePurge) {
+    const role = guild.roles.cache.get(id);
+    if (!role || !role.editable) continue;
+    await role.delete("mr-x-sentinel: Snapshot restore full").catch((err) => {
+      logger.warn({ err, roleId: id }, "Role purge failed");
+    });
+    await delay(400);
+  }
+}
+
+export async function enqueueRestore(
+  guildId: string,
+  snapshotId: string,
+  mode: RestoreMode = "repair",
+): Promise<string> {
   const job = await getRestoreQueue().add(
     "restore",
-    { guildId, snapshotId },
+    { guildId, snapshotId, mode: parseRestoreMode(mode) },
     { attempts: 3, backoff: { type: "exponential", delay: 5000 } },
   );
   return job.id ?? snapshotId;

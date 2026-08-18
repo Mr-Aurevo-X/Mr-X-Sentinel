@@ -1,11 +1,11 @@
 import type { Client, GuildMember } from "discord.js";
 import { DEFAULT_ANTI_RAID, REDIS_KEYS } from "@sentinel/shared";
-import { getGuildConfig, prisma } from "@sentinel/database";
+import { getGuildConfig, getGuildSetupComplete, prisma } from "@sentinel/database";
 import { incrementWindow } from "../redis.js";
 import { lockdownService } from "../services/LockdownService.js";
 import { modLogService } from "../services/ModLogService.js";
 import { quarantineService } from "../services/QuarantineService.js";
-import { shouldRunAntiRaid } from "./featureGates.js";
+import { isSecurityArmed, shouldRunAntiRaid } from "./featureGates.js";
 
 export class AntiRaidModule {
   constructor(private client: Client) {}
@@ -55,6 +55,12 @@ export class AntiRaidModule {
       if (role) await member.roles.add(role).catch(() => undefined);
     }
 
+    const setupComplete = await getGuildSetupComplete(member.guild.id);
+    const armed = isSecurityArmed({
+      setupComplete,
+      monitorOnly: config.antiNuke.monitorOnly,
+    });
+
     if (joinCount >= antiRaid.joinLimit) {
       await prisma.securityEvent.create({
         data: {
@@ -71,13 +77,15 @@ export class AntiRaidModule {
         severity: "CRITICAL",
       });
 
-      if (antiRaid.autoLockdown) {
+      if (armed && antiRaid.autoLockdown) {
         await lockdownService.activate(member.guild, "Join raid detected");
       }
     }
 
     if (suspicious && joinCount >= Math.ceil(antiRaid.joinLimit / 2)) {
-      await quarantineService.quarantine(member, 1);
+      if (armed) {
+        await quarantineService.quarantine(member, 1);
+      }
       await prisma.securityEvent.create({
         data: {
           guildId: member.guild.id,

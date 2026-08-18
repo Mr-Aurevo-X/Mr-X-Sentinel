@@ -12,7 +12,6 @@ import { Tile } from "@/components/ui/Tile";
 import { Toggle } from "@/components/ui/Toggle";
 import { NUKE_THRESHOLD_HELP, NUKE_THRESHOLD_LABEL } from "@/lib/panel-help";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { useDemoPreview } from "@/components/DemoPreview";
 
 type CaseRow = {
   id: string;
@@ -36,7 +35,6 @@ export function SecurityPanel({
   whitelist: { id: string; userId: string; level: string }[];
   cases: CaseRow[];
 }) {
-  const preview = useDemoPreview();
   const { config, setConfig, saving, message, setMessage, save } = useGuildConfig(guildId, initialConfig);
   const resources = useDiscordResources(guildId);
   const [entries, setEntries] = useState(whitelist);
@@ -44,16 +42,6 @@ export function SecurityPanel({
   const [newLevel, setNewLevel] = useState("TRUSTED");
 
   async function addWhitelist() {
-    if (preview) {
-      if (!newUserId.trim()) return;
-      setEntries((current) => [
-        ...current.filter((row) => row.userId !== newUserId),
-        { id: `wl-${newUserId}`, userId: newUserId, level: newLevel },
-      ]);
-      setNewUserId("");
-      setMessage("Aperçu — rien n'est écrit.");
-      return;
-    }
     const res = await fetch(`/api/guilds/${guildId}/whitelist`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -70,11 +58,6 @@ export function SecurityPanel({
   }
 
   async function removeWhitelist(userId: string) {
-    if (preview) {
-      setEntries((current) => current.filter((row) => row.userId !== userId));
-      setMessage("Aperçu — rien n'est écrit.");
-      return;
-    }
     const res = await fetch(`/api/guilds/${guildId}/whitelist?userId=${userId}`, { method: "DELETE" });
     if (res.ok) {
       setEntries((current) => current.filter((row) => row.userId !== userId));
@@ -111,7 +94,7 @@ export function SecurityPanel({
           <Toggle
             checked={config.antiNuke.monitorOnly}
             label="Surveillance uniquement"
-            hint="Log et alerte seulement — pas de quarantaine ni lockdown. Utile pour tester les seuils."
+            hint="On = logs seulement. Off = armé (lockdown / quarantine / restore repair). Équivalent de /security disarm vs /security arm. Inactif tant que /setup n’est pas fait."
             onChange={(next) => setConfig({ ...config, antiNuke: { ...config.antiNuke, monitorOnly: next } })}
           />
           <Toggle

@@ -17,6 +17,8 @@ describe.skipIf(!runIntegration)("database integration", () => {
     expect(guild.id).toBe(guildId);
     const cfg = await getGuildConfig(guildId);
     expect(cfg.locale).toBe("fr");
+    expect(cfg.features.music).toBe(false);
+    expect(cfg.antiNuke.monitorOnly).toBe(true);
   });
 
   it("upserts user wallet", async () => {

@@ -24,9 +24,6 @@ export function Nav() {
       ) : (
         <Link href="/login">Connexion</Link>
       )}
-      <Link href="/demo" className={pathname.startsWith("/demo") ? "active" : ""}>
-        Aperçu
-      </Link>
       <span className="nav-spacer" />
       {data?.user?.name ? <span className="muted">{data.user.name}</span> : null}
       {data ? (

@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction } from "discord.js";
-import { enqueueRestore, snapshotService } from "@sentinel/core";
+import { enqueueRestore, parseRestoreMode, snapshotService } from "@sentinel/core";
 import { prisma } from "@sentinel/database";
 import { buildSimpleEmbed, errorEmbed, successEmbed } from "../../ui/embeds.js";
 import type { CommandReply } from "../middleware.js";
@@ -37,8 +37,18 @@ export async function handleBackup(interaction: ChatInputCommandInteraction): Pr
     if (!snap) {
       return { embeds: [errorEmbed("Snapshot", "Snapshot introuvable.")] };
     }
-    await enqueueRestore(guild.id, id);
-    return { embeds: [successEmbed("Restauration", `Planifiée pour \`${id}\`.`)] };
+    const mode = parseRestoreMode(interaction.options.getString("mode"));
+    await enqueueRestore(guild.id, id, mode);
+    return {
+      embeds: [
+        successEmbed(
+          "Restauration",
+          mode === "full"
+            ? `Restore **complet** planifié pour \`${id}\` (recrée le manquant et supprime le surplus).`
+            : `Réparation planifiée pour \`${id}\` (recrée le manquant uniquement).`,
+        ),
+      ],
+    };
   }
 
   throw new Error("Sous-commande inconnue.");

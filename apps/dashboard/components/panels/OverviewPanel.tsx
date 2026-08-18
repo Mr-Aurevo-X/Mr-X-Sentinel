@@ -18,8 +18,6 @@ import { Guide } from "@/components/ui/Guide";
 import { FEATURE_HELP } from "@/lib/panel-help";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { DATA } from "@/components/charts/ChartTheme";
-import { buildDemoStats } from "@/lib/demo-stats";
-import { useDemoPreview } from "@/components/DemoPreview";
 
 export function OverviewPanel({
   guildId,
@@ -30,35 +28,26 @@ export function OverviewPanel({
   initialConfig: GuildConfig;
   lockdown: boolean;
 }) {
-  const preview = useDemoPreview();
   const { config, setConfig, saving, message, setMessage, save } = useGuildConfig(guildId, initialConfig);
-  const [stats, setStats] = useState<GuildStatsPayload | null>(preview ? buildDemoStats("7d") : null);
+  const [stats, setStats] = useState<GuildStatsPayload | null>(null);
 
   useEffect(() => {
-    if (preview) {
-      setStats(buildDemoStats("7d"));
-      return;
-    }
     let cancelled = false;
     void fetch(`/api/guilds/${guildId}/stats?range=7d`)
       .then(async (res) => (res.ok ? ((await res.json()) as GuildStatsPayload) : null))
       .then((payload) => {
         if (cancelled) return;
-        setStats(payload && !payload.empty ? payload : buildDemoStats("7d"));
+        setStats(payload && !payload.empty ? payload : null);
       })
       .catch(() => {
-        if (!cancelled) setStats(buildDemoStats("7d"));
+        if (!cancelled) setStats(null);
       });
     return () => {
       cancelled = true;
     };
-  }, [guildId, preview]);
+  }, [guildId]);
 
   async function toggleLockdown() {
-    if (preview) {
-      setMessage("Aperçu — rien n'est écrit.");
-      return;
-    }
     const res = await fetch(`/api/guilds/${guildId}/lockdown`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,9 +74,6 @@ export function OverviewPanel({
         arrête ses commandes et listeners, pas le reste du bot.
       </Guide>
       <Flash text={message} />
-      {stats?.topChannels.some((row) => row.channelId.startsWith("demo-")) ? (
-        <p className="flash flash-demo">Aperçu fictif — les vraies sparklines arrivent dès que le bot tourne.</p>
-      ) : null}
       {stats ? (
         <div className="spark-row">
           <Tile title="Messages · 7 j" help="Volume de messages non-bot sur 7 jours." staticTile>
@@ -111,7 +97,7 @@ export function OverviewPanel({
         </div>
       ) : null}
       <p className="cta">
-        <Link href={preview ? "/demo/analytics" : `/guilds/${guildId}/analytics`}>Ouvrir Analytics</Link>
+        <Link href={`/guilds/${guildId}/analytics`}>Ouvrir Analytics</Link>
       </p>
       <div className="grid grid-2">
         <Tile

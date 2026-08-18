@@ -4,7 +4,12 @@ import { getToken } from "next-auth/jwt";
 import DiscordProvider from "next-auth/providers/discord";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { cookieStoreToHeader } from "@sentinel/shared/cookie-header";
 import { discordTokenNeedsRefresh } from "./discord-oauth";
+import {
+  filterManagedGuilds,
+  type ManagedGuild,
+} from "./managed-guilds";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -50,37 +55,44 @@ export interface DiscordGuild {
 
 export async function getDiscordAccessToken(): Promise<string | null> {
   const cookieStore = await cookies();
+  const cookieHeader = cookieStoreToHeader(cookieStore);
   const token = await getToken({
     req: {
       headers: {
-        cookie: cookieStore.toString(),
+        cookie: cookieHeader,
       },
+      cookies: Object.fromEntries(cookieStore.getAll().map((cookie) => [cookie.name, cookie.value])),
     } as Parameters<typeof getToken>[0]["req"],
     secret: process.env.NEXTAUTH_SECRET,
   });
   if (!token) return null;
-  if (discordTokenNeedsRefresh(token.expiresAt)) return null;
   const access = token.accessToken;
-  return typeof access === "string" && access.length > 0 ? access : null;
+  if (typeof access !== "string" || access.length === 0) return null;
+  if (discordTokenNeedsRefresh(token.expiresAt)) return null;
+  return access;
 }
 
+export type FetchManagedGuildsResult =
+  | { ok: true; guilds: DiscordGuild[] }
+  | { ok: false; status: number };
+
 export async function fetchManagedGuilds(accessToken: string): Promise<DiscordGuild[]> {
+  const loaded = await fetchManagedGuildsResult(accessToken);
+  return loaded.ok ? loaded.guilds : [];
+}
+
+export async function fetchManagedGuildsResult(accessToken: string): Promise<FetchManagedGuildsResult> {
   const res = await fetch("https://discord.com/api/v10/users/@me/guilds", {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  if (!res.ok) return [];
-  const guilds = (await res.json()) as DiscordGuild[];
-  const MANAGE_GUILD = 0x20n;
-  return guilds.filter((g) => {
-    const perms = BigInt(g.permissions);
-    return g.owner || (perms & MANAGE_GUILD) === MANAGE_GUILD;
-  });
+  if (!res.ok) return { ok: false, status: res.status };
+  const guilds = (await res.json()) as ManagedGuild[];
+  return { ok: true, guilds: filterManagedGuilds(guilds) };
 }
 
 const SNOWFLAKE_RE = /^\d{17,20}$/;
 
-/** Returns null if OK, otherwise a NextResponse 400/401/403. */
-export async function assertCanManageGuild(guildId: string): Promise<NextResponse | null> {
+async function loadManagedGuilds(guildId: string): Promise<DiscordGuild[] | NextResponse> {
   if (!SNOWFLAKE_RE.test(guildId)) {
     return NextResponse.json({ error: "Invalid guild id" }, { status: 400 });
   }
@@ -92,8 +104,14 @@ export async function assertCanManageGuild(guildId: string): Promise<NextRespons
   if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const guilds = await fetchManagedGuilds(accessToken);
-  if (!guilds.some((g) => g.id === guildId)) {
+  return fetchManagedGuilds(accessToken);
+}
+
+/** Returns null if OK, otherwise a NextResponse 400/401/403. */
+export async function assertCanManageGuild(guildId: string): Promise<NextResponse | null> {
+  const loaded = await loadManagedGuilds(guildId);
+  if (loaded instanceof NextResponse) return loaded;
+  if (!loaded.some((g) => g.id === guildId)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   return null;
@@ -101,12 +119,9 @@ export async function assertCanManageGuild(guildId: string): Promise<NextRespons
 
 /** Returns null if the session user owns the guild, otherwise a NextResponse 401/403. */
 export async function assertIsGuildOwner(guildId: string): Promise<NextResponse | null> {
-  const accessToken = await getDiscordAccessToken();
-  if (!accessToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const guilds = await fetchManagedGuilds(accessToken);
-  const guild = guilds.find((g) => g.id === guildId);
+  const loaded = await loadManagedGuilds(guildId);
+  if (loaded instanceof NextResponse) return loaded;
+  const guild = loaded.find((g) => g.id === guildId);
   if (!guild?.owner) {
     return NextResponse.json({ error: "Guild owner required" }, { status: 403 });
   }

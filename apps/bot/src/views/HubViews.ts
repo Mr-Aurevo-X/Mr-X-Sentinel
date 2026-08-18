@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-import { customId } from "@sentinel/shared";
+import { customId, visibleMemberHubEntries, type GuildFeatures } from "@sentinel/shared";
 
 export function buildEconomyHubRows(): ActionRowBuilder<ButtonBuilder>[] {
   return [
@@ -34,19 +34,20 @@ export function buildMinijeuxHubRows(): ActionRowBuilder<ButtonBuilder>[] {
   ];
 }
 
-export function buildSentinelMasterHubRows(): ActionRowBuilder<ButtonBuilder>[] {
-  return [
-    new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder().setCustomId(customId("sentinel", "eco")).setLabel("💰 Économie").setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId(customId("sentinel", "gamble")).setLabel("🎰 Casino").setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId(customId("sentinel", "rank")).setLabel("📊 Mon XP").setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId(customId("economy", "daily")).setLabel("🎁 Daily").setStyle(ButtonStyle.Success),
-    ),
-    new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder().setCustomId(customId("economy", "work")).setLabel("💼 Travail").setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId(customId("fun", "slots")).setLabel("🎰 Slots").setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId(customId("ticket", "open")).setLabel("🎫 Ticket").setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId(customId("sentinel", "help")).setLabel("❓ Aide").setStyle(ButtonStyle.Secondary),
-    ),
-  ];
+export function buildSentinelMasterHubRows(features: GuildFeatures): ActionRowBuilder<ButtonBuilder>[] {
+  const entries = visibleMemberHubEntries(features);
+  const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+  for (let i = 0; i < entries.length; i += 5) {
+    rows.push(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        ...entries.slice(i, i + 5).map((entry) =>
+          new ButtonBuilder()
+            .setCustomId(customId(entry.module, entry.action))
+            .setLabel(entry.label)
+            .setStyle(ButtonStyle[entry.style]),
+        ),
+      ),
+    );
+  }
+  return rows;
 }

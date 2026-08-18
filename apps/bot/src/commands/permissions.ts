@@ -170,6 +170,8 @@ const SUBCOMMAND_TIER: Record<string, AccessTier> = {
   "security:whitelist_add": "guild_owner",
   "security:whitelist_remove": "guild_owner",
   "security:whitelist_list": "guild_owner",
+  "security:arm": "guild_owner",
+  "security:disarm": "guild_owner",
   "automod:panel": "admin",
   "automod:toggle": "admin",
   "automod:words_add": "admin",
@@ -203,6 +205,7 @@ const SUBCOMMAND_TIER: Record<string, AccessTier> = {
 const COMMAND_TIER: Record<string, AccessTier> = {
   owner: "bot_owner",
   setup: "guild_owner",
+  dashboard: "guild_owner",
   fonctionnement: "guild_owner",
   logs: "admin",
   panel: "mod",
@@ -319,6 +322,10 @@ export async function assertComponentAccess(
     return;
   }
   if (module === "welcome") {
+    await assertTier(ctx, member, "guild_owner");
+    return;
+  }
+  if (module === "setupfeat") {
     await assertTier(ctx, member, "guild_owner");
     return;
   }

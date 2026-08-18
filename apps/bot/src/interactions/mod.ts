@@ -5,21 +5,32 @@ import {
   warningEmbed,
 } from "../ui/embeds.js";
 import { buildModerationConfirmRows, buildModPanelUserSelect } from "../views/ModerationViews.js";
+import { ackComponent, editComponent, ephemeralComponent } from "../commands/ack.js";
 import type { ComponentHandler } from "./types.js";
 
 export const handleModComponent: ComponentHandler = async ({ interaction, moderation, guild, parsed }) => {
   if (parsed.action === "cancel") {
-    await interaction.update({ embeds: [buildSimpleEmbed("Annulé", "Action annulée.")], components: [] });
+    await editComponent(interaction, { embeds: [buildSimpleEmbed("Annulé", "Action annulée.")], components: [] });
     return;
   }
-  if (parsed.action !== "confirm" || !parsed.extra) return;
+  if (parsed.action !== "confirm" || !parsed.extra) {
+    if (!interaction.deferred && !interaction.replied) {
+      await ackComponent(interaction, "update");
+    }
+    return;
+  }
 
   const colon = parsed.extra.indexOf(":");
-  if (colon === -1) return;
+  if (colon === -1) {
+    if (!interaction.deferred && !interaction.replied) {
+      await ackComponent(interaction, "update");
+    }
+    return;
+  }
   const modAction = parsed.extra.slice(0, colon);
   const targetId = parsed.extra.slice(colon + 1);
   const reason = "Via panel modération Mr-X Sentinel";
-  await interaction.deferUpdate();
+  await ackComponent(interaction, "update");
 
   if (modAction === "nuke") {
     const channel = guild.channels.cache.get(targetId);
@@ -86,7 +97,7 @@ export const handleModPanelComponent: ComponentHandler = async ({ interaction, p
   if (parsed.action === "select" && interaction.isUserSelectMenu() && parsed.extra) {
     const modAction = parsed.extra;
     const targetId = interaction.values[0]!;
-    await interaction.update({
+    await editComponent(interaction, {
       embeds: [
         warningEmbed(
           `Confirmer — ${modAction}`,
@@ -100,7 +111,7 @@ export const handleModPanelComponent: ComponentHandler = async ({ interaction, p
 
   const action = parsed.action;
   if (action === "clear") {
-    await interaction.reply({
+    await ephemeralComponent(interaction, {
       embeds: [warningEmbed("Clear", "Supprimer les **10** derniers messages de ce salon ?")],
       components: buildModerationConfirmRows("clear", interaction.channelId),
       ephemeral: true,
@@ -108,7 +119,7 @@ export const handleModPanelComponent: ComponentHandler = async ({ interaction, p
     return;
   }
   if (action === "nuke") {
-    await interaction.reply({
+    await ephemeralComponent(interaction, {
       embeds: [
         warningEmbed("Nuke salon", "Ce salon sera cloné puis supprimé. Confirme pour continuer."),
       ],
@@ -118,7 +129,7 @@ export const handleModPanelComponent: ComponentHandler = async ({ interaction, p
     return;
   }
   if (["warn", "mute", "kick", "ban"].includes(action)) {
-    await interaction.reply({
+    await ephemeralComponent(interaction, {
       embeds: [buildSimpleEmbed("Panel mod", `Sélectionne le membre pour **${action}**.`)],
       components: buildModPanelUserSelect(action),
       ephemeral: true,

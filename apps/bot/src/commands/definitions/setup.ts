@@ -22,6 +22,11 @@ export const setupCommands = [
     .addRoleOption((o) => o.setName("ticket_role").setDescription("Rôle support tickets").setRequired(false)),
 
   new SlashCommandBuilder()
+    .setName("dashboard")
+    .setDescription(tierDesc("guild_owner", "Lien du dashboard web de ce serveur"))
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
     .setName("fonctionnement")
     .setDescription(tierDesc("guild_owner", "Guide complet du bot sur ce serveur"))
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)

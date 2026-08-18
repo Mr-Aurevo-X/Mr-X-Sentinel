@@ -85,19 +85,6 @@ export function createClient(): Client {
       });
     }
 
-    setInterval(
-      () => {
-        for (const guild of c.guilds.cache.values()) {
-          void (async () => {
-            const features = await getGuildFeatures(guild.id);
-            if (!shouldRunSnapshots(features)) return;
-            await snapshotService.capture(guild, "auto");
-          })().catch(() => undefined);
-        }
-      },
-      6 * 60 * 60 * 1000,
-    );
-
     setInterval(() => {
       void giveawayService.tick(c).catch(() => undefined);
       void pollService.tick(c).catch(() => undefined);

@@ -379,12 +379,6 @@ label {
   color: #ff9b9d;
 }
 
-.flash-demo {
-  background: rgba(237, 66, 69, 0.1);
-  border-color: rgba(237, 66, 69, 0.28);
-  color: var(--accent-2);
-}
-
 .panel-shell {
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;

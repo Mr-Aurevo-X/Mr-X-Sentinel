@@ -7,11 +7,11 @@ import type {
 } from "discord.js";
 import { parseCustomId } from "@sentinel/shared";
 import type { ModerationService } from "@sentinel/core";
+import { getGuildConfig } from "@sentinel/database";
 import { withComponent } from "./commands/middleware.js";
-import { assertComponentAccess, assertTier } from "./commands/permissions.js";
+import { assertComponentAccess, assertTier, type AccessTier } from "./commands/permissions.js";
 import { buildHelpEmbed } from "./ui/embeds.js";
 import { buildHelpTierRows } from "./views/HelpView.js";
-import { buildSentinelMasterHubRows } from "./views/HubViews.js";
 import type { ComponentHandler } from "./interactions/types.js";
 import {
   handleBlackjackComponent,
@@ -34,11 +34,12 @@ import {
   handleTemplateComponent,
   handleVerifyComponent,
   handleWelcomeComponent,
+  handleSetupFeatComponent,
 } from "./interactions/extras.js";
 
 export { handleModal, buildLogsPanel };
 
-const HELP_TIER_ACCESS: Record<string, import("./commands/permissions.js").AccessTier> = {
+const HELP_TIER_ACCESS: Record<string, AccessTier> = {
   public: "public",
   staff: "mod",
   owner: "guild_owner",
@@ -65,6 +66,7 @@ const COMPONENT_HANDLERS: Record<string, ComponentHandler> = {
   music: handleMusicComponent,
   logs: handleLogsComponent,
   template: handleTemplateComponent,
+  setupfeat: handleSetupFeatComponent,
 };
 
 export async function handleComponent(
@@ -77,9 +79,21 @@ export async function handleComponent(
   await withComponent(interaction, async () => {
     const guild = interaction.guild!;
     const parsed = parseCustomId(interaction.customId);
-    if (!parsed) return;
+    if (!parsed) {
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferUpdate();
+      }
+      return;
+    }
+
+    if (parsed.module === "mod" && parsed.action === "confirm" && !interaction.deferred && !interaction.replied) {
+      await interaction.deferUpdate();
+    }
 
     if (parsed.module === "help" && parsed.action === "tier" && interaction.isStringSelectMenu()) {
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferUpdate();
+      }
       const tier = interaction.values[0] ?? "public";
       const need = HELP_TIER_ACCESS[tier] ?? "public";
       assertTier(
@@ -87,8 +101,9 @@ export async function handleComponent(
         interaction.member as GuildMember,
         need,
       );
-      await interaction.update({
-        embeds: [buildHelpEmbed(tier as "public" | "staff" | "owner" | "bot_owner")],
+      const features = (await getGuildConfig(guild.id)).features;
+      await interaction.editReply({
+        embeds: [buildHelpEmbed(tier as "public" | "staff" | "owner" | "bot_owner", features)],
         components: buildHelpTierRows(),
       });
       return;
@@ -100,8 +115,4 @@ export async function handleComponent(
     if (!handler) return;
     await handler({ interaction, client, moderation, guild, parsed });
   });
-}
-
-export function buildSentinelHub() {
-  return buildSentinelMasterHubRows();
 }

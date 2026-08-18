@@ -9,6 +9,14 @@ import type { GuildFeatures } from "@sentinel/shared";
 import { isModuleEnabled, economyAntiCheat } from "@sentinel/core";
 import { parseCustomId } from "@sentinel/shared";
 import { errorEmbed, loadingEmbed, buildModuleDisabledEmbed } from "../ui/embeds.js";
+import {
+  INFRA_UNAVAILABLE_MESSAGE,
+  ackComponent,
+  componentAckMode,
+  ephemeralComponent,
+  isInfraUnavailableError,
+  shouldDeferSlash,
+} from "./ack.js";
 
 const ECO_UI_MODULES = new Set(["eco", "economy", "fun", "bj", "minijeu"]);
 
@@ -49,60 +57,65 @@ export function withCommand(
   handler: CommandHandler,
   options: CommandOptions = {},
 ): (interaction: ChatInputCommandInteraction, client: import("discord.js").Client) => Promise<void> {
-  const { defer = true, module, loadingTitle, skipDefer = false } = options;
+  const { module, loadingTitle, skipDefer = false } = options;
 
   return async (interaction, client) => {
     const ephemeral =
       typeof options.ephemeral === "function"
         ? options.ephemeral(interaction)
         : (options.ephemeral ?? true);
-    if (module) {
-      const features = (await getGuildConfig(interaction.guild!.id)).features;
-      if (!isModuleEnabled(features, module)) {
-        await interaction.reply({
-          embeds: [buildModuleDisabledEmbed(module)],
-          ephemeral: true,
-        });
-        return;
-      }
-    }
 
-    try {
-      await economyAntiCheat.checkRateLimit(
-        interaction.guild!.id,
-        interaction.user.id,
-        interaction.commandName,
-      );
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Rate limit";
+    if (shouldDeferSlash(interaction.commandName, { skipDefer })) {
       if (!interaction.deferred && !interaction.replied) {
-        await interaction.reply({ embeds: [errorEmbed("Anti-spam économie", msg)], ephemeral: true });
+        await interaction.deferReply({ ephemeral });
       }
-      return;
-    }
-
-    const shouldDefer = defer && !skipDefer;
-    if (shouldDefer && !interaction.deferred && !interaction.replied) {
-      await interaction.deferReply({ ephemeral });
-      if (loadingTitle) {
+      if (loadingTitle && (interaction.deferred || interaction.replied)) {
         await interaction.editReply({ embeds: [loadingEmbed(loadingTitle)] });
       }
     }
 
     try {
+      if (module) {
+        const features = (await getGuildConfig(interaction.guild!.id)).features;
+        if (!isModuleEnabled(features, module)) {
+          await replyPayload(interaction, { embeds: [buildModuleDisabledEmbed(module)] }, true);
+          return;
+        }
+      }
+
+      try {
+        await economyAntiCheat.checkRateLimit(
+          interaction.guild!.id,
+          interaction.user.id,
+          interaction.commandName,
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Rate limit";
+        await replyPayload(interaction, { embeds: [errorEmbed("Anti-spam économie", msg)] }, true);
+        return;
+      }
+
       const result = await handler(interaction, client);
       if (!result) return;
       await replyPayload(interaction, result, ephemeral);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      const infra = isInfraUnavailableError(err);
+      const msg = infra
+        ? INFRA_UNAVAILABLE_MESSAGE
+        : err instanceof Error
+          ? err.message
+          : "Erreur inconnue";
       const denied =
-        msg.includes("Permission refusée") || msg.includes("Réservé au") || msg.includes("Réservé au propriétaire");
-      const embed = denied ? errorEmbed("Accès refusé", msg) : errorEmbed("Erreur", msg);
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ embeds: [embed] });
-      } else {
-        await interaction.reply({ embeds: [embed], ephemeral });
-      }
+        !infra &&
+        (msg.includes("Permission refusée") ||
+          msg.includes("Réservé au") ||
+          msg.includes("Réservé au propriétaire"));
+      const embed = infra
+        ? errorEmbed("Base indisponible", msg)
+        : denied
+          ? errorEmbed("Accès refusé", msg)
+          : errorEmbed("Erreur", msg);
+      await replyPayload(interaction, { embeds: [embed] }, ephemeral);
     }
   };
 }
@@ -111,8 +124,12 @@ export async function withComponent(
   interaction: MessageComponentInteraction,
   fn: () => Promise<void>,
 ): Promise<void> {
+  const parsed = parseCustomId(interaction.customId);
+  if (parsed) {
+    await ackComponent(interaction, componentAckMode(parsed.module, parsed.action));
+  }
+
   if (interaction.guild) {
-    const parsed = parseCustomId(interaction.customId);
     if (parsed && ECO_UI_MODULES.has(parsed.module)) {
       try {
         await economyAntiCheat.checkRateLimit(
@@ -122,9 +139,9 @@ export async function withComponent(
         );
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Rate limit";
-        if (!interaction.deferred && !interaction.replied) {
-          await interaction.reply({ embeds: [errorEmbed("Anti-spam économie", msg)], ephemeral: true });
-        }
+        await ephemeralComponent(interaction, {
+          embeds: [errorEmbed("Anti-spam économie", msg)],
+        }).catch(() => undefined);
         return;
       }
     }
@@ -132,11 +149,26 @@ export async function withComponent(
 
   try {
     await fn();
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferUpdate().catch(() => undefined);
+    }
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Erreur inconnue";
+    const infra = isInfraUnavailableError(err);
+    const msg = infra
+      ? INFRA_UNAVAILABLE_MESSAGE
+      : err instanceof Error
+        ? err.message
+        : "Erreur inconnue";
     const denied =
-      msg.includes("Permission refusée") || msg.includes("Réservé au") || msg.includes("Réservé au propriétaire");
-    const embed = denied ? errorEmbed("Accès refusé", msg) : errorEmbed("Erreur", msg);
+      !infra &&
+      (msg.includes("Permission refusée") ||
+        msg.includes("Réservé au") ||
+        msg.includes("Réservé au propriétaire"));
+    const embed = infra
+      ? errorEmbed("Base indisponible", msg)
+      : denied
+        ? errorEmbed("Accès refusé", msg)
+        : errorEmbed("Erreur", msg);
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply({ embeds: [embed] }).catch(() => undefined);
     } else if (interaction.isMessageComponent()) {

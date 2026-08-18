@@ -7,6 +7,7 @@ import {
 import { ACTIVE_LOG_TYPES, customId } from "@sentinel/shared";
 import { logProvisioningService } from "@sentinel/core";
 import { successEmbed } from "../ui/embeds.js";
+import { ackComponent } from "../commands/ack.js";
 import type { ComponentHandler } from "./types.js";
 
 export function buildLogsPanel(): ActionRowBuilder<StringSelectMenuBuilder | ButtonBuilder>[] {
@@ -35,7 +36,7 @@ export function buildLogsPanel(): ActionRowBuilder<StringSelectMenuBuilder | But
 
 export const handleLogsComponent: ComponentHandler = async ({ interaction, guild, parsed }) => {
   if (parsed.action !== "create") return;
-  await interaction.deferReply({ ephemeral: true });
+  await ackComponent(interaction, "ephemeral");
   const channels = await logProvisioningService.provisionAll(guild);
   await interaction.editReply({
     embeds: [successEmbed("Logs", `${Object.keys(channels).length} salons créés.`)],

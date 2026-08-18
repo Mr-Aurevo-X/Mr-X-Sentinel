@@ -17,7 +17,6 @@ import { MessageAreaChart } from "@/components/charts/MessageAreaChart";
 import { SeverityDonut } from "@/components/charts/SeverityDonut";
 import { StackedLoadChart } from "@/components/charts/StackedLoadChart";
 import { TopChannelsBar } from "@/components/charts/TopChannelsBar";
-import { buildDemoStats, DEMO_CHANNEL_NAMES } from "@/lib/demo-stats";
 
 const RANGE_LABELS: Record<StatRange, string> = {
   "24h": "24 h",
@@ -25,20 +24,13 @@ const RANGE_LABELS: Record<StatRange, string> = {
   "30d": "30 jours",
 };
 
-export function AnalyticsPanel({
-  guildId,
-  preview = false,
-}: {
-  guildId?: string;
-  preview?: boolean;
-}) {
+export function AnalyticsPanel({ guildId }: { guildId: string }) {
   const [range, setRange] = useState<StatRange>("7d");
   const [live, setLive] = useState<GuildStatsPayload | null>(null);
-  const [channelNames, setChannelNames] = useState<Record<string, string>>(DEMO_CHANNEL_NAMES);
+  const [channelNames, setChannelNames] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (preview || !guildId) return;
     let cancelled = false;
     setError(null);
     void fetch(`/api/guilds/${guildId}/stats?range=${range}`)
@@ -55,16 +47,15 @@ export function AnalyticsPanel({
     return () => {
       cancelled = true;
     };
-  }, [guildId, range, preview]);
+  }, [guildId, range]);
 
   useEffect(() => {
-    if (preview || !guildId) return;
     let cancelled = false;
     void fetch(`/api/guilds/${guildId}/discord`)
       .then(async (res) => (res.ok ? ((await res.json()) as { channels: { id: string; name: string }[] }) : null))
       .then((data) => {
         if (cancelled || !data) return;
-        const names = { ...DEMO_CHANNEL_NAMES };
+        const names: Record<string, string> = {};
         for (const channel of data.channels) names[channel.id] = channel.name;
         setChannelNames(names);
       })
@@ -72,26 +63,23 @@ export function AnalyticsPanel({
     return () => {
       cancelled = true;
     };
-  }, [guildId, preview]);
+  }, [guildId]);
 
-  const usingDemo = preview || Boolean(live?.empty);
-  const stats = usingDemo || !live ? buildDemoStats(range) : live;
-  const loading = !preview && !live && !error;
+  const loading = !live && !error;
+  const empty = Boolean(live?.empty);
 
   const topChannels = useMemo(
     () =>
-      stats.topChannels.map((row) => ({
+      (live?.topChannels ?? []).map((row) => ({
         name: channelNames[row.channelId] ? `#${channelNames[row.channelId]}` : `#${row.channelId.slice(-4)}`,
         messages: row.messages,
       })),
-    [stats, channelNames],
+    [live, channelNames],
   );
-
-  const analyticsHref = preview ? "/demo" : `/guilds/${guildId}`;
 
   return (
     <>
-      <p className="hero-kicker">{preview ? "Aperçu" : "Ops"}</p>
+      <p className="hero-kicker">Ops</p>
       <h1>Analytics</h1>
       <Guide
         who="Le bot compte (joins, messages, automod, cas, tickets, vocal). Le panel affiche. Rien n'est écrit ici."
@@ -116,15 +104,16 @@ export function AnalyticsPanel({
         {RANGE_HELP[range]}
       </p>
       {error ? <p className="flash flash-error">{error}</p> : null}
-      {usingDemo ? (
-        <p className="flash flash-demo">Données fictives — pour voir le rendu. Les vraies courbes arrivent dès que le bot tourne.</p>
-      ) : null}
       {loading ? (
         <p className="empty">Chargement des courbes…</p>
-      ) : (
+      ) : null}
+      {empty && !error ? (
+        <p className="empty">Pas encore de stats — le bot doit tourner un moment sur ce serveur.</p>
+      ) : null}
+      {live && !empty ? (
         <>
           <div className="kpi-grid">
-            {stats.kpis.map((kpi) => (
+            {live.kpis.map((kpi) => (
               <KpiTile key={kpi.id} kpi={kpi} />
             ))}
           </div>
@@ -134,14 +123,14 @@ export function AnalyticsPanel({
               help="Vert = arrivées, orange = départs, ligne bleue = effectif (axe de droite). Un pic orange + chute bleue = raid kick ou purge."
               staticTile
             >
-              <AreaFlowChart data={stats.series} />
+              <AreaFlowChart data={live.series} />
             </Tile>
             <Tile
               title="Messages"
               help="Volume de messages non-bot. Ça monte pendant un event, ça tombe si le serveur est lock ou mort."
               staticTile
             >
-              <MessageAreaChart data={stats.series} />
+              <MessageAreaChart data={live.series} />
             </Tile>
           </div>
           <div className="grid grid-2" style={{ marginTop: "1rem" }}>
@@ -150,14 +139,14 @@ export function AnalyticsPanel({
               help="Jaune = hits automod, rose = cas (/warn /mute /kick /ban). Les deux empilés = charge staff."
               staticTile
             >
-              <StackedLoadChart data={stats.series} />
+              <StackedLoadChart data={live.series} />
             </Tile>
             <Tile
               title="Sévérité (7 j)"
               help="Répartition des événements sécurité sur 7 jours : faible → critique. Beaucoup de critique = nuke, raid ou perms dangereuses."
               staticTile
             >
-              <SeverityDonut data={stats.severity} />
+              <SeverityDonut data={live.severity} />
             </Tile>
           </div>
           <div style={{ marginTop: "1rem" }}>
@@ -166,7 +155,7 @@ export function AnalyticsPanel({
               help="Lignes = jours, colonnes = heures UTC. Plus c’est clair (cyan → jaune → rose), plus le salon parle. Sert à voir les heures chaudes."
               staticTile
             >
-              <HourHeatmap cells={stats.heatmap} days={stats.heatmapDays} />
+              <HourHeatmap cells={live.heatmap} days={live.heatmapDays} />
             </Tile>
           </div>
           <div style={{ marginTop: "1rem" }}>
@@ -179,10 +168,10 @@ export function AnalyticsPanel({
             </Tile>
           </div>
           <p className="cta">
-            Retour <Link href={analyticsHref}>vue d&apos;ensemble</Link>
+            Retour <Link href={`/guilds/${guildId}`}>vue d&apos;ensemble</Link>
           </p>
         </>
-      )}
+      ) : null}
     </>
   );
 }

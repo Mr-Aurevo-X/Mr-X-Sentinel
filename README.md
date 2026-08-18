@@ -33,7 +33,7 @@ Le développement de **cette** version — dépôt [Mr-Aurevo-X/Mr-X-Sentinel](h
 - **Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt : pas de correctif, pas de revue de PR, pas de support.
 - **Après publication publique :** aucun correctif de sa part. Ce dépôt est la photographie de ce qui a été publié. La suite se fait uniquement sur les forks.
 - **Aucune contribution n’est demandée ni autorisée sur ce dépôt.** Pas de PR, pas de patch, pas d’issue « je propose un fix ». Elles ne seront pas examinées ni mergées.
-- **Forkez comme vous voulez** (Apache-2.0) : copiez, réutilisez, modifiez **de votre côté**. Prenez ce que vous voulez, jetez le reste. Les obligations Apache (conserver la [licence](LICENSE) et les mentions du [`NOTICE`](NOTICE), indiquer vos modifications) s’appliquent **uniquement** aux fichiers que vous redistribuez, pas à ceux que vous retirez. N’envoyez pas de PR ici. Un clin d’œil à l’auteur (ou à Cursor) est bienvenu — ce n’est **pas** obligatoire.
+- **Forkez comme vous voulez** (Apache-2.0) : copiez, réutilisez, modifiez **de votre côté**. Prenez ce que vous voulez, jetez le reste. Les obligations Apache (conserver la [licence](LICENSE) et les mentions du [`NOTICE`](NOTICE), indiquer vos modifications) s’appliquent **uniquement** aux fichiers que vous redistribuez, pas à ceux que vous retirez. N’envoyez pas de PR ici. Un clin d’œil à l’auteur et à Cursor est bienvenu — ce n’est **pas** obligatoire.
 - Un fork, un binaire recompilé ou une instance tierce n’engagent **que** leur opérateur. En cas de litige, **seul ce dépôt original** fait foi de ce que Mr-Aurevo-X a publié.
 - Logiciel fourni **tel quel**, sans garantie d’aucune sorte.
 

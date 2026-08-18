@@ -35,6 +35,14 @@ async function loadGuildConfigUncached(guildId: string): Promise<GuildConfig> {
   return parseGuildConfig(guild.config);
 }
 
+export async function getGuildSetupComplete(guildId: string): Promise<boolean> {
+  const row = await prisma.guild.findUnique({
+    where: { id: guildId },
+    select: { setupComplete: true },
+  });
+  return Boolean(row?.setupComplete);
+}
+
 export async function getGuildConfig(guildId: string): Promise<GuildConfig> {
   const cached = guildConfigCache.get(guildId);
   if (cached) return cached;

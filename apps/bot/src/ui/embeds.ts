@@ -14,6 +14,7 @@ import {
   type ShopCatalogEntry,
   type GuildFeatures,
   visibleGuildFeatures,
+  helpPublicDescription,
 } from "@sentinel/shared";
 
 type EmbedOpts = {
@@ -357,14 +358,16 @@ export function buildConfigViewEmbed(features: GuildFeatures): EmbedBuilder {
   return baseEmbed({ title: "Configuration serveur", description: lines, color: COLORS.brand });
 }
 
-export function buildHelpEmbed(tier: "public" | "staff" | "owner" | "bot_owner" = "public"): EmbedBuilder {
+export function buildHelpEmbed(
+  tier: "public" | "staff" | "owner" | "bot_owner" = "public",
+  features: GuildFeatures,
+): EmbedBuilder {
   const blocks: Record<typeof tier, string> = {
-    public:
-      "**Hub :** `/sentinel menu` · `/help`\n**Économie :** `/balance` `/daily` `/work` `/shop` `/pay`\n**Fun :** `/fun`\n**XP :** `/rank` `/leaderboard`\n**Info :** `/serverinfo` `/avatar` `/userinfo` `/botinfo`\n**Musique :** `/music play` `/music`\n**Communauté :** `/suggest` `/poll` `/afk`\n**Commandes perso :** `/listcommands`",
+    public: helpPublicDescription(features),
     staff:
-      "**Modération :** `/ban` `/kick` `/mute` `/warn` `/clear` `/panel`\n**Salons :** `/channel slowmode|lock|unlock`\n**Tickets :** `/ticket setup|close|claim|rename`\n**Automod :** `/automod panel`\n**Logs :** `/logs create`\n**Commandes perso :** `/addcommand` `/removecommand`",
+      "**Modération :** `/ban` `/kick` `/mute` `/warn` `/clear` `/panel`\n**Admin :** `/admin panel` `/admin roles` `/admin announce` `/admin shop_add`\n**Salons :** `/channel slowmode|lock|unlock`\n**Tickets :** `/ticket setup|close|claim|rename`\n**Automod :** `/automod panel`\n**Logs :** `/logs create`\n**Commandes perso :** `/addcommand` `/removecommand`",
     owner:
-      "**Config :** `/config view|feature|economy`\n**Niveaux :** `/levels channel` `/levels roles`\n**Templates :** `/template panel`",
+      "**Dashboard :** `/dashboard`\n**Config :** `/config view|feature|economy`\n**Niveaux :** `/levels channel` `/levels roles`\n**Templates :** `/template panel`\n**Sécurité :** `/security whitelist_add` puis `/security arm`",
     bot_owner: "**Global :** `/owner` · `/security whitelist_*` · `/backup` · `/sentinel`",
   };
   return baseEmbed({

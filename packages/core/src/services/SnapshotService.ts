@@ -1,6 +1,7 @@
 import type { Guild, Role, Emoji, NonThreadGuildBasedChannel } from "discord.js";
 import type { SnapshotPayload, SnapshotChannel, SnapshotRole, SnapshotEmoji } from "@sentinel/shared";
 import { getOrCreateGuild, prisma } from "@sentinel/database";
+import { AUTO_SNAPSHOT_KEEP } from "./snapshotPrune.js";
 
 export class SnapshotService {
   async capture(guild: Guild, label = "auto"): Promise<string> {
@@ -66,16 +67,22 @@ export class SnapshotService {
       },
     });
 
+    if (label === "auto") {
+      await this.pruneAuto(guild.id);
+    }
+
     return record.id;
   }
 
-  async getLatest(guildId: string): Promise<SnapshotPayload | null> {
-    const snap = await prisma.snapshot.findFirst({
-      where: { guildId },
+  private async pruneAuto(guildId: string): Promise<void> {
+    const stale = await prisma.snapshot.findMany({
+      where: { guildId, label: "auto" },
       orderBy: { createdAt: "desc" },
+      skip: AUTO_SNAPSHOT_KEEP,
+      select: { id: true },
     });
-    if (!snap) return null;
-    return snap.payload as unknown as SnapshotPayload;
+    if (stale.length === 0) return;
+    await prisma.snapshot.deleteMany({ where: { id: { in: stale.map((row) => row.id) } } });
   }
 
   async list(guildId: string, limit = 20) {

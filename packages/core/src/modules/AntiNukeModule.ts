@@ -5,15 +5,18 @@ import {
   type GuildAuditLogsEntry,
 } from "discord.js";
 import type { AuditActionType } from "@sentinel/shared";
-import { isWhitelisted, getGuildConfig, prisma } from "@sentinel/database";
+import { REDIS_KEYS } from "@sentinel/shared";
+import { getGuildSetupComplete, isWhitelisted, getGuildConfig, prisma } from "@sentinel/database";
 import { threatEngine } from "../engine/ThreatEngine.js";
+import { evaluateGhostAudit, GHOST_WINDOW_SEC } from "../engine/ghostAudit.js";
 import { quarantineService } from "../services/QuarantineService.js";
 import { lockdownService } from "../services/LockdownService.js";
 import { modLogService } from "../services/ModLogService.js";
 import { enqueueRestore } from "../queue/restoreQueue.js";
 import { snapshotService } from "../services/SnapshotService.js";
+import { incrementWindow } from "../redis.js";
 import { logger } from "../logger.js";
-import { shouldRunAntiNuke } from "./featureGates.js";
+import { isSecurityArmed, shouldRunAntiNuke } from "./featureGates.js";
 
 const AUDIT_MAP: Partial<Record<AuditLogEvent, AuditActionType>> = {
   [AuditLogEvent.MemberBanAdd]: "BAN",
@@ -49,6 +52,12 @@ export class AntiNukeModule {
     const config = await getGuildConfig(guild.id);
     if (!shouldRunAntiNuke(config.features, config.antiNuke.enabled)) return;
 
+    const setupComplete = await getGuildSetupComplete(guild.id);
+    const armed = isSecurityArmed({
+      setupComplete,
+      monitorOnly: config.antiNuke.monitorOnly,
+    });
+
     const ownerId = guild.ownerId;
     const wl = actorId
       ? await isWhitelisted(guild.id, actorId, ownerId)
@@ -64,17 +73,18 @@ export class AntiNukeModule {
     };
 
     let decision = threatEngine.evaluate(ctx);
-    const thresholdKey = action;
-    if (!wl.whitelisted && !config.antiNuke.monitorOnly) {
-      decision = await threatEngine.evaluateWithThreshold(ctx, thresholdKey);
+    if (!wl.whitelisted && armed) {
+      decision = await threatEngine.evaluateWithThreshold(ctx, action);
     }
 
     if (isGhost && !wl.whitelisted) {
+      const ghostCount = await incrementWindow(REDIS_KEYS.ghostWindow(guild.id), GHOST_WINDOW_SEC);
+      const ghost = evaluateGhostAudit(ghostCount);
       decision = {
-        actions: ["QUARANTINE", "LOCKDOWN", "LOG"],
-        severity: "CRITICAL",
-        reason: "Ghost event — unknown executor",
-        shouldRollback: true,
+        actions: ghost.shouldLockdown ? ["LOCKDOWN", "LOG"] : ["LOG"],
+        severity: ghost.severity,
+        reason: ghost.reason,
+        shouldRollback: false,
       };
     }
 
@@ -84,7 +94,7 @@ export class AntiNukeModule {
         type: `ANTI_NUKE_${action}`,
         actorId,
         severity: decision.severity,
-        metadata: { reason: decision.reason, actions: decision.actions },
+        metadata: { reason: decision.reason, actions: decision.actions, armed },
       },
     });
 
@@ -98,21 +108,15 @@ export class AntiNukeModule {
       fields: [{ name: "Action", value: action, inline: true }],
     });
 
-    if (config.antiNuke.monitorOnly) return;
+    if (!armed) return;
 
     if (decision.actions.includes("LOCKDOWN") && config.antiNuke.autoLockdown) {
       await lockdownService.activate(guild, decision.reason);
     }
 
     if (decision.shouldRollback) {
-      const latest = await snapshotService.getLatest(guild.id);
-      if (latest) {
-        const snaps = await prisma.snapshot.findFirst({
-          where: { guildId: guild.id },
-          orderBy: { createdAt: "desc" },
-        });
-        if (snaps) await enqueueRestore(guild.id, snaps.id);
-      }
+      const latest = (await snapshotService.list(guild.id, 1))[0];
+      if (latest) await enqueueRestore(guild.id, latest.id, "repair");
     }
 
     if (actorId && decision.actions.includes("QUARANTINE")) {

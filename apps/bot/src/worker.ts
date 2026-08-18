@@ -4,6 +4,7 @@ import {
   startLockdownWorker,
   startRestoreWorker,
   startSnapshotCaptureWorker,
+  scheduleAutoSnapshotTick,
 } from "@sentinel/core";
 import { config, validateConfig } from "./config.js";
 
@@ -18,6 +19,9 @@ await client.login(config.token);
 const restoreWorker = startRestoreWorker(() => client);
 const lockdownWorker = startLockdownWorker(() => client);
 const captureWorker = startSnapshotCaptureWorker(() => client);
+await scheduleAutoSnapshotTick().catch((err: unknown) => {
+  console.warn("[Worker] Auto snapshot scheduler failed", err);
+});
 console.log("[Worker] Restore, lockdown, and snapshot capture workers started");
 
 process.on("SIGINT", async () => {

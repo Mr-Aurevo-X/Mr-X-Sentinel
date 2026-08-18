@@ -10,7 +10,6 @@ import { Field } from "@/components/ui/Field";
 import { Flash } from "@/components/ui/Flash";
 import { Guide } from "@/components/ui/Guide";
 import { Tile } from "@/components/ui/Tile";
-import { useDemoPreview } from "@/components/DemoPreview";
 
 type ShopItem = { id: string; name: string; price: number; roleId: string | null };
 
@@ -23,7 +22,6 @@ export function EconomyPanel({
   initialConfig: GuildConfig;
   shop: ShopItem[];
 }) {
-  const preview = useDemoPreview();
   const { config, setConfig, saving, message, setMessage, save } = useGuildConfig(guildId, initialConfig);
   const resources = useDiscordResources(guildId);
   const [items, setItems] = useState(shop);
@@ -41,13 +39,6 @@ export function EconomyPanel({
   }
 
   async function addItem() {
-    if (preview) {
-      if (!name.trim()) return;
-      setItems((current) => [{ id: `shop-${Date.now()}`, name, price, roleId }, ...current]);
-      setName("");
-      setMessage("Aperçu — rien n'est écrit.");
-      return;
-    }
     const res = await fetch(`/api/guilds/${guildId}/shop`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -64,11 +55,6 @@ export function EconomyPanel({
   }
 
   async function removeItem(itemId: string) {
-    if (preview) {
-      setItems((current) => current.filter((item) => item.id !== itemId));
-      setMessage("Aperçu — rien n'est écrit.");
-      return;
-    }
     const res = await fetch(`/api/guilds/${guildId}/shop?itemId=${itemId}`, { method: "DELETE" });
     if (res.ok) {
       setItems((current) => current.filter((item) => item.id !== itemId));

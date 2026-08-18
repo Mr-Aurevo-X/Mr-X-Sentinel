@@ -3,11 +3,12 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from "discord.js";
-import { customId } from "@sentinel/shared";
+import { customId, isSetupToggleFeature } from "@sentinel/shared";
 import { getGuildConfig, prisma, updateGuildConfig } from "@sentinel/database";
 import { listTemplates, templateService } from "@sentinel/core";
 import { musicManager } from "../music/MusicManager.js";
 import { provisionWelcomeChannels, buildWelcomeSetupRows } from "../views/WelcomeSetupView.js";
+import { buildSetupModuleRows } from "../views/SetupModulesView.js";
 import {
   buildTemplateApplySelect,
   buildTemplatePanelRows,
@@ -15,10 +16,11 @@ import {
 } from "../views/TemplatePanelView.js";
 import { buildAutomodPanelRows } from "../views/AutomodPanelView.js";
 import { buildSimpleEmbed, errorEmbed, successEmbed, warningEmbed } from "../ui/embeds.js";
+import { ackComponent, editComponent, ephemeralComponent } from "../commands/ack.js";
 import type { ComponentHandler } from "./types.js";
 
 export const handleAutomodComponent: ComponentHandler = async ({ interaction, guild, parsed }) => {
-  await interaction.deferUpdate();
+  await ackComponent(interaction, "update");
   const cfg = await getGuildConfig(guild.id);
   const patch = { ...cfg.automod };
   if (parsed.action === "toggle") patch.enabled = !patch.enabled;
@@ -40,7 +42,7 @@ export const handleAutomodComponent: ComponentHandler = async ({ interaction, gu
 
 export const handleWelcomeComponent: ComponentHandler = async ({ interaction, guild, parsed }) => {
   if (parsed.action === "create") {
-    await interaction.deferUpdate();
+    await ackComponent(interaction, "update");
     const ids = await provisionWelcomeChannels(guild);
     const cfg = await getGuildConfig(guild.id);
     await updateGuildConfig(guild.id, { welcome: { ...cfg.welcome, ...ids } });
@@ -52,7 +54,7 @@ export const handleWelcomeComponent: ComponentHandler = async ({ interaction, gu
   }
   if (parsed.action === "info") {
     const cfg = await getGuildConfig(guild.id);
-    await interaction.update({
+    await editComponent(interaction, {
       embeds: [
         buildSimpleEmbed(
           "Config welcome",
@@ -67,7 +69,7 @@ export const handleWelcomeComponent: ComponentHandler = async ({ interaction, gu
 export const handleLevelsComponent: ComponentHandler = async ({ interaction, guild, parsed }) => {
   if (parsed.action !== "ping_toggle") return;
   if (parsed.extra !== interaction.user.id) {
-    await interaction.reply({ embeds: [errorEmbed("Réservé", "Ton propre level-up.")], ephemeral: true });
+    await ephemeralComponent(interaction, { embeds: [errorEmbed("Réservé", "Ton propre level-up.")] });
     return;
   }
   const row = await prisma.userXp.findUnique({
@@ -79,9 +81,8 @@ export const handleLevelsComponent: ComponentHandler = async ({ interaction, gui
     create: { guildId: guild.id, userId: interaction.user.id, levelUpPing: next },
     update: { levelUpPing: next },
   });
-  await interaction.reply({
+  await ephemeralComponent(interaction, {
     embeds: [successEmbed("Level-up", next ? "Ping activé." : "Ping désactivé.")],
-    ephemeral: true,
   });
 };
 
@@ -90,7 +91,7 @@ export const handleSuggestComponent: ComponentHandler = async ({ interaction, gu
   if (!interaction.isButton()) return;
   const messageId = parsed.extra;
   if (!messageId) return;
-  await interaction.deferUpdate();
+  await ackComponent(interaction, "update");
   const vote = parsed.action === "up" ? 1 : -1;
   await prisma.suggestionVote.upsert({
     where: {
@@ -126,37 +127,35 @@ export const handleMusicComponent: ComponentHandler = async ({ interaction, guil
   const guildIdMusic = parsed.extra ?? guild.id;
   const player = musicManager.getPlayer(guildIdMusic);
   if (!player) {
-    await interaction.reply({ embeds: [errorEmbed("Musique", "Aucune lecture.")], ephemeral: true });
+    await ephemeralComponent(interaction, { embeds: [errorEmbed("Musique", "Aucune lecture.")] });
     return;
   }
   if (parsed.action === "pause") {
     player.pause(!player.paused);
-    await interaction.reply({
+    await ephemeralComponent(interaction, {
       embeds: [successEmbed("Musique", player.paused ? "Pause." : "Reprise.")],
-      ephemeral: true,
     });
     return;
   }
   if (parsed.action === "skip") {
     await player.skip();
-    await interaction.reply({ embeds: [successEmbed("Musique", "Piste suivante.")], ephemeral: true });
+    await ephemeralComponent(interaction, { embeds: [successEmbed("Musique", "Piste suivante.")] });
     return;
   }
   if (parsed.action === "stop") {
     player.destroy();
-    await interaction.reply({ embeds: [successEmbed("Musique", "Arrêté.")], ephemeral: true });
+    await ephemeralComponent(interaction, { embeds: [successEmbed("Musique", "Arrêté.")] });
     return;
   }
   if (parsed.action === "queue") {
     const q = player.queue.map((t) => t.title).slice(0, 10).join("\n") || "(vide)";
-    await interaction.reply({ embeds: [buildSimpleEmbed("File d'attente", q)], ephemeral: true });
+    await ephemeralComponent(interaction, { embeds: [buildSimpleEmbed("File d'attente", q)] });
     return;
   }
   if (parsed.action === "shuffle") {
     const n = musicManager.shuffle(guildIdMusic);
-    await interaction.reply({
+    await ephemeralComponent(interaction, {
       embeds: [successEmbed("Shuffle", `File mélangée (**${n}**).`)],
-      ephemeral: true,
     });
   }
 };
@@ -165,7 +164,7 @@ export const handleTemplateComponent: ComponentHandler = async ({ interaction, c
   if (parsed.action === "list") {
     const templates = listTemplates();
     const body = templates.map((t) => `• **${t.label}** (\`${t.key}\`) — ${t.description}`).join("\n") || "Aucun template.";
-    await interaction.update({
+    await editComponent(interaction, {
       embeds: [buildSimpleEmbed("📚 Templates disponibles", body, 0x5865f2)],
       components: buildTemplatePanelRows(),
     });
@@ -173,7 +172,7 @@ export const handleTemplateComponent: ComponentHandler = async ({ interaction, c
   }
 
   if (parsed.action === "apply_menu") {
-    await interaction.update({
+    await editComponent(interaction, {
       embeds: [buildSimpleEmbed("🧩 Appliquer un template", "Choisis un modèle dans le menu ci-dessous.", 0x57f287)],
       components: [buildTemplateApplySelect(), ...buildTemplatePanelRows()],
     });
@@ -181,7 +180,7 @@ export const handleTemplateComponent: ComponentHandler = async ({ interaction, c
   }
 
   if (parsed.action === "reset_warn") {
-    await interaction.update({
+    await editComponent(interaction, {
       embeds: [
         warningEmbed(
           "Reset complet",
@@ -195,7 +194,7 @@ export const handleTemplateComponent: ComponentHandler = async ({ interaction, c
 
   if (parsed.action === "reset_cancel") {
     const count = listTemplates().length;
-    await interaction.update({
+    await editComponent(interaction, {
       embeds: [
         buildSimpleEmbed(
           "🧩 Panneau templates",
@@ -209,7 +208,7 @@ export const handleTemplateComponent: ComponentHandler = async ({ interaction, c
   }
 
   if (parsed.action === "reset_confirm") {
-    await interaction.deferUpdate();
+    await ackComponent(interaction, "update");
     const result = await templateService.resetGuildStructure(guild, interaction.user.id);
     const embed = warningEmbed("Reset terminé", "Nettoyage complet du serveur exécuté.");
     embed.addFields(
@@ -222,7 +221,7 @@ export const handleTemplateComponent: ComponentHandler = async ({ interaction, c
   }
 
   if (parsed.action === "apply" && interaction.isStringSelectMenu()) {
-    await interaction.deferUpdate();
+    await ackComponent(interaction, "update");
     const templateKey = interaction.values[0]!;
     const template = await templateService.apply(guild, templateKey, client, interaction.user.id, {
       createLogs: false,
@@ -243,12 +242,12 @@ export const handleVerifyComponent: ComponentHandler = async ({ interaction, gui
   if (parsed.action !== "ok" || !interaction.isButton()) return;
   const cfg = await getGuildConfig(guild.id);
   if (!cfg.verification.enabled || !cfg.verification.verifiedRoleId) {
-    await interaction.reply({ embeds: [errorEmbed("Vérification", "Non configurée.")], ephemeral: true });
+    await ephemeralComponent(interaction, { embeds: [errorEmbed("Vérification", "Non configurée.")] });
     return;
   }
   const member = await guild.members.fetch(interaction.user.id).catch(() => null);
   if (!member) return;
-  await interaction.deferReply({ ephemeral: true });
+  await ackComponent(interaction, "ephemeral");
   const added = await member.roles
     .add(cfg.verification.verifiedRoleId)
     .then(() => true)
@@ -263,4 +262,23 @@ export const handleVerifyComponent: ComponentHandler = async ({ interaction, gui
     await member.roles.remove(cfg.verification.unverifiedRoleId).catch(() => undefined);
   }
   await interaction.editReply({ embeds: [successEmbed("Vérifié", "Accès accordé.")] });
+};
+
+export const handleSetupFeatComponent: ComponentHandler = async ({ interaction, guild, parsed }) => {
+  if (parsed.action !== "toggle" || !parsed.extra || !isSetupToggleFeature(parsed.extra)) return;
+  const key = parsed.extra;
+  await ackComponent(interaction, "update");
+  const cfg = await getGuildConfig(guild.id);
+  const next = !cfg.features[key];
+  const updated = await updateGuildConfig(guild.id, { features: { ...cfg.features, [key]: next } });
+  const features = updated.features;
+  await interaction.editReply({
+    embeds: [
+      successEmbed(
+        "Modules",
+        `**${key}** : ${features[key] ? "activé" : "désactivé"}. La sécurité reste en surveillance jusqu'à \`/security arm\`.`,
+      ),
+    ],
+    components: buildSetupModuleRows(features),
+  });
 };

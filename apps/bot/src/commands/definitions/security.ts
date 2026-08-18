@@ -30,7 +30,13 @@ export const securityCommands = [
         .setDescription(tierDesc("guild_owner", "Retirer un membre de la whitelist"))
         .addUserOption((o) => o.setName("user").setDescription("Membre").setRequired(true)),
     )
-    .addSubcommand((s) => s.setName("whitelist_list").setDescription(tierDesc("guild_owner", "Lister la whitelist"))),
+    .addSubcommand((s) => s.setName("whitelist_list").setDescription(tierDesc("guild_owner", "Lister la whitelist")))
+    .addSubcommand((s) =>
+      s.setName("arm").setDescription(tierDesc("guild_owner", "Armer anti-nuke / anti-raid (plus de surveillance seule)")),
+    )
+    .addSubcommand((s) =>
+      s.setName("disarm").setDescription(tierDesc("guild_owner", "Repasser la sécurité en surveillance seule")),
+    ),
 
   new SlashCommandBuilder()
     .setName("automod")
@@ -67,6 +73,15 @@ export const securityCommands = [
       s
         .setName("restore")
         .setDescription(tierDesc("guild_owner", "Restaurer un snapshot"))
-        .addStringOption((o) => o.setName("id").setDescription("ID du snapshot").setRequired(true)),
+        .addStringOption((o) => o.setName("id").setDescription("ID du snapshot").setRequired(true))
+        .addStringOption((o) =>
+          o
+            .setName("mode")
+            .setDescription("repair = recrée le manquant ; full = supprime aussi le surplus")
+            .addChoices(
+              { name: "Réparer (défaut)", value: "repair" },
+              { name: "Complet (supprime le surplus)", value: "full" },
+            ),
+        ),
     ),
 ];

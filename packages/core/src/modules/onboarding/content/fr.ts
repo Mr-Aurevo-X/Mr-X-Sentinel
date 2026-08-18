@@ -1,4 +1,4 @@
-import { visibleGuildFeatures, type GuildFeatures } from "@sentinel/shared";
+import { dashboardPublicUrl, visibleGuildFeatures, type GuildFeatures } from "@sentinel/shared";
 
 export type FonctionnementSection =
   | "demarrage"
@@ -41,10 +41,11 @@ export function sectionContent(
         title: "Démarrage rapide",
         body: [
           "1. Invite le bot avec permissions **Administrateur**.",
-          "2. `/setup create_logs:true` — configure sécurité + salons logs.",
-          "3. `/fonctionnement` — ce guide (owner uniquement).",
-          "4. Attribue le rôle **Logs** à ton staff mod.",
-          "5. `/sentinel menu` pour les membres ; `/ban` `/kick` etc. pour la mod.",
+          "2. `/setup create_logs:true` — logs + rôle Quarantine. La sécurité reste en **surveillance**.",
+          "3. Active les modules (éco, XP, tickets…) via les boutons du setup ou `/config feature`.",
+          "4. `/security whitelist_add` pour le staff de confiance.",
+          "5. `/security arm` — lockdown / quarantine / restore repair deviennent actifs.",
+          "6. `/fonctionnement` — ce guide (owner uniquement).",
         ].join("\n"),
       };
     case "modules":
@@ -58,7 +59,7 @@ export function sectionContent(
       return {
         title: "Système de logs",
         body: [
-          "Catégorie **Logs Sentinel** — 12 salons (mod, security, economy, …).",
+          "Catégorie **Logs Sentinel** — 10 types (mod, security, economy, …).",
           "Bouton **Créer salons logs** ou `/logs create`.",
           "Rôle **Logs** : lecture seule pour le staff.",
         ].join("\n"),
@@ -72,7 +73,14 @@ export function sectionContent(
       return features.security
         ? {
             title: "Sécurité",
-            body: "Anti-nuke, anti-raid, automod. `/security status|lockdown|unlock`. Logs : `#logs-security`.",
+            body: [
+              "Anti-nuke, anti-raid, automod.",
+              "Après `/setup` : **surveillance seule** (logs).",
+              "`/security whitelist_add` puis `/security arm` pour exécuter lockdown / quarantine / restore repair.",
+              "`/security disarm` pour revenir en surveillance.",
+              "Restore auto = réparation (recrée le manquant). Restore **full** = owner, optionnel.",
+              "`/security status|lockdown|unlock`. Logs : `#logs-security`.",
+            ].join("\n"),
           }
         : { title: "Sécurité", body: "Module désactivé." };
     case "economy_fun":
@@ -89,15 +97,21 @@ export function sectionContent(
     case "tickets":
       return { title: "Tickets", body: "Panel ticket via boutons. Logs : `#logs-tickets`." };
     case "templates":
-      return { title: "Templates", body: "13 modèles de serveur via `/setup` (Phase templates)." };
+      return { title: "Templates", body: "14 modèles de serveur via `/setup`." };
     case "musique":
       return features.music
         ? { title: "Musique", body: "`/music play` (Lavalink). Sources à vos risques." }
         : { title: "Musique", body: "Module désactivé." };
     case "staff":
-      return { title: "Staff", body: "Rôles mod/ticket : `/admin` (à venir). Niveaux : Public, Staff, Owner." };
+      return {
+        title: "Staff",
+        body: "Rôles mod/ticket : `/admin roles`. Panneau : `/admin panel`. Annonces / boutique : `/admin announce` `/admin shop_add`. Niveaux : Public, Staff, Owner.",
+      };
     case "dashboard":
-      return { title: "Dashboard", body: "Panel web OAuth : http://localhost:3000 (Phase 6)." };
+      return {
+        title: "Dashboard",
+        body: `Panel web OAuth : ${dashboardPublicUrl()} — commande owner : \`/dashboard\`. Lance \`pnpm dev:dashboard\` (ou \`pnpm dev\`). Pas dans Docker local.`,
+      };
     case "depannage":
       return {
         title: "Dépannage",
@@ -131,6 +145,7 @@ export function visibleSections(features: GuildFeatures): FonctionnementSection[
     if (s === "security" && !features.security) return false;
     if (s === "economy_fun" && !features.economy && !features.fun) return false;
     if (s === "levels" && !features.levels) return false;
+    if (s === "tickets" && !features.tickets) return false;
     if (s === "musique" && !features.music) return false;
     return true;
   });

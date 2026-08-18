@@ -9,6 +9,6 @@ export function parseCustomId(id: string): { module: string; action: string; ext
   return {
     module: parts[1]!,
     action: parts[2]!,
-    extra: parts[3],
+    extra: parts.length > 3 ? parts.slice(3).join(":") : undefined,
   };
 }

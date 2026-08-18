@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   GUILD_CATEGORY_TYPE,
+  idsToPurge,
   keepRestoreOverwrite,
+  liveIdsFromMap,
   orderChannelsForRestore,
+  parseRestoreMode,
   remapOverwriteTargetId,
   resolveRestoreParentId,
 } from "./restoreMapping.js";
@@ -33,6 +36,36 @@ describe("keepRestoreOverwrite", () => {
     expect(keepRestoreOverwrite({ id: "role-a", type: 0 }, roles, "guild")).toBe(true);
     expect(keepRestoreOverwrite({ id: "guild", type: 0 }, roles, "guild")).toBe(true);
     expect(keepRestoreOverwrite({ id: "missing-role", type: 0 }, roles, "guild")).toBe(false);
+  });
+});
+
+describe("idsToPurge", () => {
+  it("drops ids that are in the snapshot or protected", () => {
+    const purged = idsToPurge(["a", "b", "c", "prot"], ["a"], new Set(["prot"]));
+    expect(purged).toEqual(["b", "c"]);
+  });
+
+  it("returns nothing when everything is known", () => {
+    expect(idsToPurge(["a"], ["a", "b"], new Set())).toEqual([]);
+  });
+
+  it("keeps remapped live ids, not snapshot snowflakes", () => {
+    const idMap = new Map([
+      ["old-ch", "new-ch"],
+      ["old-role", "new-role"],
+    ]);
+    const keep = liveIdsFromMap(idMap);
+    expect(idsToPurge(["new-ch", "extra"], keep, new Set())).toEqual(["extra"]);
+    expect(idsToPurge(["new-ch", "extra"], ["old-ch"], new Set())).toEqual(["new-ch", "extra"]);
+  });
+});
+
+describe("parseRestoreMode", () => {
+  it("defaults unknown values to repair", () => {
+    expect(parseRestoreMode("full")).toBe("full");
+    expect(parseRestoreMode("repair")).toBe("repair");
+    expect(parseRestoreMode(undefined)).toBe("repair");
+    expect(parseRestoreMode("nope")).toBe("repair");
   });
 });
 

@@ -1,4 +1,22 @@
+import { parseRestoreMode, type RestoreMode } from "@sentinel/shared";
+
+export { parseRestoreMode, type RestoreMode };
+
 export const GUILD_CATEGORY_TYPE = 4;
+
+export function idsToPurge(
+  currentIds: readonly string[],
+  snapshotIds: readonly string[],
+  protectedIds: ReadonlySet<string>,
+): string[] {
+  const keep = new Set(snapshotIds);
+  return currentIds.filter((id) => !keep.has(id) && !protectedIds.has(id));
+}
+
+/** Live Discord ids after recreate — snapshot snowflakes are not valid keep ids. */
+export function liveIdsFromMap(idMap: ReadonlyMap<string, string>): string[] {
+  return [...idMap.values()];
+}
 
 export type RestoreChannel = {
   id: string;

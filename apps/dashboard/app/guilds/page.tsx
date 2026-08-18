@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions, fetchManagedGuilds, getDiscordAccessToken } from "@/lib/auth";
+import { authOptions, fetchManagedGuildsResult, getDiscordAccessToken } from "@/lib/auth";
+import { guildsLoadMessage } from "@/lib/managed-guilds";
 import { redirect } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { Guide } from "@/components/ui/Guide";
@@ -18,7 +19,14 @@ export default async function GuildsPage() {
   if (!session) redirect("/login");
 
   const accessToken = await getDiscordAccessToken();
-  const guilds = accessToken ? await fetchManagedGuilds(accessToken) : [];
+  const loaded = accessToken ? await fetchManagedGuildsResult(accessToken) : null;
+  const guilds = loaded?.ok ? loaded.guilds : [];
+  const error =
+    !accessToken
+      ? guildsLoadMessage("no_token")
+      : loaded && !loaded.ok
+        ? guildsLoadMessage("discord", loaded.status)
+        : null;
 
   return (
     <>
@@ -30,9 +38,9 @@ export default async function GuildsPage() {
           who="Toi, avec la permission Discord Manage Guild (ou owner). Le bot doit déjà être sur le serveur."
           how="Clique une carte. Chaque page du panel a un guide en haut (Qui / Comment) et une aide sous chaque option."
         >
-          Un serveur = un panel. Tu configures ici ; le bot applique dans Discord. L&apos;aperçu public
-          n&apos;écrit rien en base.
+          Un serveur = un panel. Tu configures ici ; le bot applique dans Discord.
         </Guide>
+        {error ? <p className="flash flash-error">{error}</p> : null}
         <div className="grid grid-2" style={{ marginTop: "1.5rem" }}>
           {guilds.map((g) => {
             const icon = guildIconUrl(g.id, g.icon);
@@ -57,7 +65,7 @@ export default async function GuildsPage() {
             );
           })}
         </div>
-        {guilds.length === 0 ? (
+        {!error && guilds.length === 0 ? (
           <EmptyState>Aucun serveur avec permission Manage Guild.</EmptyState>
         ) : null}
       </main>

@@ -9,7 +9,7 @@ const SESSION_MAX_AGE_SEC = 30 * 24 * 60 * 60;
 const inflightRefresh = new Map<string, Promise<DiscordTokenSet | null>>();
 
 export function discordTokenNeedsRefresh(expiresAt: number | undefined, now = Date.now()): boolean {
-  if (expiresAt == null) return true;
+  if (expiresAt == null) return false;
   return now >= expiresAt * 1000 - REFRESH_SKEW_MS;
 }
 

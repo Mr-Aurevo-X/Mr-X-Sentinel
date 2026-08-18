@@ -1,6 +1,6 @@
 import type { ChatInputCommandInteraction } from "discord.js";
-import { isLockdownActive, lockdownService } from "@sentinel/core";
-import { getGuildConfig, prisma } from "@sentinel/database";
+import { isLockdownActive, isSecurityArmed, lockdownService, logService, shouldRunAntiNuke } from "@sentinel/core";
+import { getGuildConfig, getGuildSetupComplete, prisma, updateGuildConfig } from "@sentinel/database";
 import { buildSimpleEmbed, successEmbed } from "../../ui/embeds.js";
 import type { CommandReply } from "../middleware.js";
 
@@ -15,14 +15,26 @@ export async function handleSecurity(
     const cfg = await getGuildConfig(guildId);
     const row = await prisma.guild.findUnique({
       where: { id: guildId },
-      select: { lockdown: true },
+      select: { lockdown: true, setupComplete: true, quarantineRoleId: true },
     });
     const lock = (await isLockdownActive(guildId)) || Boolean(row?.lockdown);
+    const armed =
+      shouldRunAntiNuke(cfg.features, cfg.antiNuke.enabled) &&
+      isSecurityArmed({
+        setupComplete: Boolean(row?.setupComplete),
+        monitorOnly: cfg.antiNuke.monitorOnly,
+      });
     return {
       embeds: [
         buildSimpleEmbed(
           "État sécurité",
-          `Lockdown : **${lock ? "oui" : "non"}**\nAnti-nuke : **${cfg.antiNuke.enabled ? "on" : "off"}**\nQuarantine : **${cfg.quarantineRoleId ? "rôle prêt" : "sera créé au besoin"}**`,
+          [
+            `Setup : **${row?.setupComplete ? "terminé" : "à faire (`/setup`)"}**`,
+            `Mode : **${armed ? "armé" : "surveillance seule"}**`,
+            `Lockdown : **${lock ? "oui" : "non"}**`,
+            `Anti-nuke : **${cfg.antiNuke.enabled ? "on" : "off"}**`,
+            `Quarantine : **${row?.quarantineRoleId ? "rôle prêt" : "sera créé au besoin"}**`,
+          ].join("\n"),
         ),
       ],
     };
@@ -65,6 +77,38 @@ export async function handleSecurity(
   if (sub === "unlock") {
     await lockdownService.deactivate(guild);
     return { embeds: [successEmbed("Unlock", "Lockdown désactivé.")] };
+  }
+  if (sub === "arm") {
+    if (!(await getGuildSetupComplete(guildId))) {
+      throw new Error("Termine `/setup` avant d'armer la sécurité.");
+    }
+    const cfg = await getGuildConfig(guildId);
+    await updateGuildConfig(guildId, { antiNuke: { ...cfg.antiNuke, monitorOnly: false } });
+    await logService.log(interaction.client, guildId, "admin", {
+      title: "Sécurité armée",
+      description: `Anti-nuke armé par <@${interaction.user.id}>`,
+      actorId: interaction.user.id,
+    });
+    return {
+      embeds: [
+        successEmbed(
+          "Sécurité armée",
+          "Lockdown, quarantine et restore repair sont actifs. Whiteliste le staff avec `/security whitelist_add`. `/security disarm` pour revenir en surveillance.",
+        ),
+      ],
+    };
+  }
+  if (sub === "disarm") {
+    const cfg = await getGuildConfig(guildId);
+    await updateGuildConfig(guildId, { antiNuke: { ...cfg.antiNuke, monitorOnly: true } });
+    await logService.log(interaction.client, guildId, "admin", {
+      title: "Sécurité en surveillance",
+      description: `Anti-nuke désarmé par <@${interaction.user.id}>`,
+      actorId: interaction.user.id,
+    });
+    return {
+      embeds: [successEmbed("Surveillance seule", "Les événements sont loggés, sans lockdown ni rollback automatique.")],
+    };
   }
 
   throw new Error("Sous-commande inconnue.");

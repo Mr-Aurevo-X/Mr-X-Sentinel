@@ -2,6 +2,7 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { logProvisioningService, logService, templateService } from "@sentinel/core";
 import { getGuildConfig, prisma, updateGuildConfig } from "@sentinel/database";
 import { successEmbed } from "../../ui/embeds.js";
+import { buildSetupModuleRows } from "../../views/SetupModulesView.js";
 import type { CommandReply } from "../middleware.js";
 
 export async function handleSetup(
@@ -56,16 +57,26 @@ export async function handleSetup(
     actorId: interaction.user.id,
   });
 
+  const features = (await getGuildConfig(guild.id)).features;
   return {
     embeds: [
       successEmbed(
         "Setup terminé",
-        (templateKey ? `Template **${templateKey}** appliqué. ` : "") +
-          (createLogs ? "Salons logs créés. " : "") +
-          (modRole ? `Rôle mod : ${modRole.name}. ` : "") +
-          (ticketRole ? `Rôle tickets : ${ticketRole.name}. ` : "") +
-          "Lance **/fonctionnement** pour le guide.",
+        [
+          templateKey ? `Template **${templateKey}** appliqué.` : undefined,
+          createLogs ? "Salons logs créés." : undefined,
+          modRole ? `Rôle mod : ${modRole.name}.` : undefined,
+          ticketRole ? `Rôle tickets : ${ticketRole.name}.` : undefined,
+          "La sécurité est en **surveillance seule** (logs, pas de lockdown auto).",
+          "1. Active les modules ci-dessous si tu en as besoin.",
+          "2. `/security whitelist_add` pour le staff de confiance.",
+          "3. `/security arm` quand tu es prêt.",
+          "Guide : `/fonctionnement`.",
+        ]
+          .filter((line): line is string => Boolean(line))
+          .join("\n"),
       ),
     ],
+    components: buildSetupModuleRows(features),
   };
 }

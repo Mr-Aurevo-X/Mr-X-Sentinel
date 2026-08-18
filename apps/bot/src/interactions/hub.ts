@@ -38,6 +38,7 @@ import {
   standSession,
   startBlackjackSession,
 } from "../services/BlackjackSession.js";
+import { ackComponent, editComponent } from "../commands/ack.js";
 import type { ComponentHandler } from "./types.js";
 
 const PER_PAGE = 10;
@@ -48,14 +49,14 @@ export const handleFonctionnementComponent: ComponentHandler = async ({ interact
   const section = interaction.values[0] as FonctionnementSection;
   const features = (await getGuildConfig(guild.id)).features;
   const { title, body } = sectionContent(section, features);
-  await interaction.update({
+  await editComponent(interaction, {
     embeds: [buildSimpleEmbed(`Mr-X Sentinel — ${title}`, body)],
     components: buildFonctionnementView(features, section),
   });
 };
 
 export const handleEcoComponent: ComponentHandler = async ({ interaction, guild, parsed }) => {
-  await interaction.deferUpdate();
+  await ackComponent(interaction, "update");
   const member = interaction.member as GuildMember;
   const tab = (parsed.action as EcoTab) || "home";
   const payload = await renderEcoTab(tab, member, guild.id);
@@ -63,7 +64,7 @@ export const handleEcoComponent: ComponentHandler = async ({ interaction, guild,
 };
 
 export const handleLeaderboardComponent: ComponentHandler = async ({ interaction, guild, parsed }) => {
-  await interaction.deferUpdate();
+  await ackComponent(interaction, "update");
   const ecoRows = await economyService.leaderboard(guild.id, 50);
   const levelRows = await levelsService.leaderboard(guild.id, 50);
   const globalRows = await levelsService.globalLeaderboard(guild.id, 50);
@@ -114,24 +115,28 @@ export const handleLeaderboardComponent: ComponentHandler = async ({ interaction
 
 export const handleSentinelComponent: ComponentHandler = async ({ interaction, guild, parsed }) => {
   if (parsed.action === "eco") {
-    await interaction.deferUpdate();
+    await ackComponent(interaction, "update");
     const member = interaction.member as GuildMember;
     const payload = await renderEcoTab("home", member, guild.id);
     await interaction.editReply(payload);
     return;
   }
   if (parsed.action === "gamble") {
-    await interaction.deferUpdate();
+    await ackComponent(interaction, "update");
     await interaction.editReply({ embeds: [buildGambleHubEmbed()], components: buildGambleHubRows() });
     return;
   }
   if (parsed.action === "help") {
-    await interaction.deferUpdate();
-    await interaction.editReply({ embeds: [buildHelpEmbed()], components: buildSentinelMasterHubRows() });
+    await ackComponent(interaction, "update");
+    const features = (await getGuildConfig(guild.id)).features;
+    await interaction.editReply({
+      embeds: [buildHelpEmbed("public", features)],
+      components: buildSentinelMasterHubRows(features),
+    });
     return;
   }
   if (parsed.action === "rank") {
-    await interaction.deferReply({ ephemeral: true });
+    await ackComponent(interaction, "ephemeral");
     const row = await levelsService.getOrCreate(guild.id, interaction.user.id);
     const member = interaction.member as GuildMember;
     const { currentLevelXp, nextLevelXp } = levelsService.getProgress(row.xp, row.level);
@@ -145,7 +150,7 @@ export const handleSentinelComponent: ComponentHandler = async ({ interaction, g
 
 export const handleEconomyRewardComponent: ComponentHandler = async ({ interaction, client, guild, parsed }) => {
   if (parsed.action !== "daily" && parsed.action !== "work") return;
-  await interaction.deferReply({ ephemeral: true });
+  await ackComponent(interaction, "ephemeral");
   const { embed } = await runEconomyReward(parsed.action, guild.id, interaction.user.id, client);
   await interaction.editReply({ embeds: [embed] });
 };
@@ -153,7 +158,7 @@ export const handleEconomyRewardComponent: ComponentHandler = async ({ interacti
 export const handleFunComponent: ComponentHandler = async ({ interaction, client, guild, parsed }) => {
   const bet = 50;
   const runHubBetGame = async (run: () => { payout: number; text: string; win: boolean }) => {
-    await interaction.deferReply({ ephemeral: true });
+    await ackComponent(interaction, "ephemeral");
     const wallet = await economyService.getOrCreateWallet(guild.id, interaction.user.id);
     if (wallet.cash < bet) {
       await interaction.editReply({ embeds: [errorEmbed("Fonds insuffisants", `Minimum ${formatMoney(bet)}.`)] });
@@ -179,7 +184,7 @@ export const handleFunComponent: ComponentHandler = async ({ interaction, client
     return;
   }
   if (parsed.action === "blackjack") {
-    await interaction.deferReply({ ephemeral: true });
+    await ackComponent(interaction, "ephemeral");
     const wallet = await economyService.getOrCreateWallet(guild.id, interaction.user.id);
     if (wallet.cash < bet) {
       await interaction.editReply({ embeds: [errorEmbed("Fonds insuffisants", `Minimum ${formatMoney(bet)}.`)] });
@@ -193,7 +198,7 @@ export const handleFunComponent: ComponentHandler = async ({ interaction, client
     return;
   }
   if (parsed.action === "slots") {
-    await interaction.deferReply({ ephemeral: true });
+    await ackComponent(interaction, "ephemeral");
     const wallet = await economyService.getOrCreateWallet(guild.id, interaction.user.id);
     if (wallet.cash < bet) {
       await interaction.editReply({ embeds: [errorEmbed("Fonds insuffisants", `Minimum ${formatMoney(bet)}.`)] });
@@ -210,7 +215,7 @@ export const handleFunComponent: ComponentHandler = async ({ interaction, client
 };
 
 export const handleMinijeuComponent: ComponentHandler = async ({ interaction, client, guild, parsed }) => {
-  await interaction.deferReply({ ephemeral: true });
+  await ackComponent(interaction, "ephemeral");
   const wallet = await economyService.getOrCreateWallet(guild.id, interaction.user.id);
   if (wallet.cash < MINIJEU_BET) {
     await interaction.editReply({
@@ -256,7 +261,7 @@ export const handleMinijeuComponent: ComponentHandler = async ({ interaction, cl
 
 export const handleBlackjackComponent: ComponentHandler = async ({ interaction, client, guild, parsed }) => {
   if (!parsed.extra) return;
-  await interaction.deferUpdate();
+  await ackComponent(interaction, "update");
   const session = await getBlackjackSession(parsed.extra);
   if (!session || session.userId !== interaction.user.id) {
     await interaction.editReply({ embeds: [errorEmbed("Session expirée")], components: [] });

@@ -37,9 +37,6 @@ export default async function HomePage() {
                 Connexion Discord
               </Link>
             )}
-            <Link href="/demo" className="btn btn-ghost">
-              Aperçu du panel
-            </Link>
           </div>
         </section>
         <div className="grid grid-3" style={{ marginTop: "1rem" }}>

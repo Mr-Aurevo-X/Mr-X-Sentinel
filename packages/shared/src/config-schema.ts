@@ -13,7 +13,7 @@ const thresholdSchema = z.object({
 
 export const antiNukeConfigSchema = z.object({
   enabled: z.boolean().default(true),
-  monitorOnly: z.boolean().default(false),
+  monitorOnly: z.boolean().default(true),
   instantActions: z.array(z.string()).default([]),
   thresholds: z.record(z.string(), thresholdSchema).default({}),
   quarantineDays: z.number().int().min(1).max(28).default(7),

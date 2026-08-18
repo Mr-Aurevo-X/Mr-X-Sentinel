@@ -63,7 +63,7 @@ export class ModerationService {
   }
 
   async warn(member: GuildMember, moderator: User, reason: string) {
-    await this.notifyTarget(
+    void this.notifyTarget(
       member.user,
       "Avertissement",
       `Serveur **${member.guild.name}**\nRaison : ${reason}`,
@@ -77,7 +77,7 @@ export class ModerationService {
   }
 
   async mute(member: GuildMember, moderator: User, reason: string, durationMs: number) {
-    await this.notifyTarget(
+    void this.notifyTarget(
       member.user,
       "Mute",
       `Tu as été mute sur **${member.guild.name}**.\nRaison : ${reason}`,
@@ -89,7 +89,7 @@ export class ModerationService {
   }
 
   async kick(member: GuildMember, moderator: User, reason: string) {
-    await this.notifyTarget(
+    void this.notifyTarget(
       member.user,
       "Expulsion",
       `Tu as été expulsé de **${member.guild.name}**.\nRaison : ${reason}`,
@@ -101,13 +101,13 @@ export class ModerationService {
   async ban(guildId: string, userId: string, moderator: User, reason: string, deleteDays = 1) {
     const guild = await this.client.guilds.fetch(guildId);
     const user = await this.client.users.fetch(userId);
-    await this.notifyTarget(user, "Bannissement", `Tu as été banni.\nRaison : ${reason}`);
+    void this.notifyTarget(user, "Bannissement", `Tu as été banni.\nRaison : ${reason}`);
     await guild.members.ban(userId, { reason, deleteMessageSeconds: deleteDays * 86400 });
     await this.createCase(guildId, "BAN", user, moderator, reason);
   }
 
   async softban(member: GuildMember, moderator: User, reason: string, deleteDays = 1) {
-    await this.notifyTarget(
+    void this.notifyTarget(
       member.user,
       "Softban",
       `Sanction sur **${member.guild.name}** (messages purgés).\nRaison : ${reason}`,

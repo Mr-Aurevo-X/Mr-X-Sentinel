@@ -15,3 +15,12 @@ export function cookieHeaderWithSessionToken(
   parts.push(`${cookieName}=${value}`);
   return parts.join("; ");
 }
+
+/** Next 15 `cookies().toString()` is not a Cookie header — use `getAll()`. */
+export function cookieStoreToHeader(store: { getAll(): { name: string; value: string }[] }): string {
+  return store
+    .getAll()
+    .filter((cookie) => cookie.name)
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join("; ");
+}

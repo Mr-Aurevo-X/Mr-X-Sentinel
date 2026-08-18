@@ -16,7 +16,7 @@ Apache-2.0 vous autorise à copier, réutiliser et modifier **ailleurs**. Prenez
 2. **Indiquez clairement vos modifications** (obligation Apache-2.0 sur ce que vous redistribuez, pas une option).
 3. N’attribuez pas vos ajouts à Mr-Aurevo-X. N’ouvrez pas de PR vers ce dépôt.
 
-Garder le nom de l’auteur ou une mention Cursor, c’est un clin d’œil — **pas** une obligation.
+Garder le nom de l’auteur et une mention Cursor, c’est un clin d’œil — **pas** une obligation.
 
 En cas de problème sur une copie modifiée, **seul le dépôt original** fait foi de ce que l’auteur a publié.
 

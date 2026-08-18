@@ -1,0 +1,4 @@
+# Skip docker-compose.prod.yml: the Prisma migrate path is still broken.
+runtime: node
+panel:
+  start: pnpm --filter @sentinel/dashboard start

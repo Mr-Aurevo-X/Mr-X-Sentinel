@@ -1,6 +1,11 @@
-import type { ChatInputCommandInteraction } from "discord.js";
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  type ChatInputCommandInteraction,
+} from "discord.js";
 import { getGuildConfig } from "@sentinel/database";
-import { visibleGuildFeatures } from "@sentinel/shared";
+import { dashboardGuildUrl, dashboardPublicUrl, visibleGuildFeatures } from "@sentinel/shared";
 import { buildFonctionnementEmbed, buildFonctionnementView } from "../fonctionnement.js";
 import { buildLogsPanel } from "../../interactions/logs.js";
 import {
@@ -26,6 +31,24 @@ export async function handleFonctionnement(
   return {
     embeds: [buildFonctionnementEmbed(features)],
     components: buildFonctionnementView(features),
+  };
+}
+
+export async function handleDashboard(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
+  const guild = interaction.guild!;
+  const url = dashboardGuildUrl(guild.id);
+  return {
+    embeds: [
+      buildSimpleEmbed(
+        "Dashboard",
+        `Panneau web de **${guild.name}**.\n[Ouvrir le dashboard](${url})`,
+      ),
+    ],
+    components: [
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel("Ouvrir le dashboard").setURL(url),
+      ),
+    ],
   };
 }
 
@@ -55,6 +78,7 @@ export async function handleSentinel(interaction: ChatInputCommandInteraction): 
             "Modules activables par serveur via `/config feature`.",
             "",
             "Open source (Apache-2.0) : https://github.com/Mr-Aurevo-X/Mr-X-Sentinel",
+            `Dashboard : ${dashboardPublicUrl()} (\`pnpm dev:dashboard\` ou \`pnpm dev\`)`,
             "Hub principal : `/sentinel menu` · Aide : `/help`",
           ].join("\n"),
         ),
@@ -67,7 +91,7 @@ export async function handleSentinel(interaction: ChatInputCommandInteraction): 
   const banner = process.env.BRAND_BANNER_URL ?? null;
   return {
     embeds: [buildSentinelMasterHubEmbed(guild.name, guild.memberCount, on, visible.length, banner)],
-    components: buildSentinelMasterHubRows(),
+    components: buildSentinelMasterHubRows(cfg.features),
   };
 }
 
@@ -75,6 +99,7 @@ export async function handlePanel(): Promise<CommandReply> {
   return { embeds: [buildPanelEmbed()], components: buildModerationPanelRows() };
 }
 
-export async function handleHelp(): Promise<CommandReply> {
-  return { embeds: [buildHelpEmbed("public")], components: buildHelpTierRows() };
+export async function handleHelp(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
+  const features = (await getGuildConfig(interaction.guild!.id)).features;
+  return { embeds: [buildHelpEmbed("public", features)], components: buildHelpTierRows() };
 }

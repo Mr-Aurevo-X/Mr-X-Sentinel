@@ -1,15 +1,17 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { buildSimpleEmbed } from "../../ui/embeds.js";
 import type { CommandReply } from "../middleware.js";
+import { formatGatewayPing, pickGatewayPing } from "../ack.js";
 
 export async function handlePing(interaction: ChatInputCommandInteraction): Promise<CommandReply> {
   const rtt = Date.now() - interaction.createdTimestamp;
-  const ws = interaction.client.ws.ping;
+  const shardPings = [...interaction.client.ws.shards.values()].map((shard) => shard.ping);
+  const ws = pickGatewayPing(interaction.client.ws.ping, shardPings);
   return {
     embeds: [
       buildSimpleEmbed(
         "🏓 Pong",
-        `Latence API : **${rtt} ms**\nWebSocket : **${ws} ms**`,
+        `Latence API : **${rtt} ms**\nWebSocket : **${formatGatewayPing(ws)}**`,
         0x57f287,
       ),
     ],

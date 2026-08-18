@@ -20,3 +20,7 @@ export function shouldRunPermissionGuard(features: GuildFeatures): boolean {
 export function shouldRunSnapshots(features: GuildFeatures): boolean {
   return isModuleEnabled(features, "snapshots");
 }
+
+export function isSecurityArmed(opts: { setupComplete: boolean; monitorOnly: boolean }): boolean {
+  return opts.setupComplete && !opts.monitorOnly;
+}

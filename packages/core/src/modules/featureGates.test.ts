@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { defaultGuildFeatures } from "@sentinel/shared";
 import {
+  isSecurityArmed,
   shouldRunAntiNuke,
   shouldRunAntiRaid,
   shouldRunAutomod,
@@ -52,5 +53,16 @@ describe("snapshots feature gate", () => {
   it("is a no-op when features.snapshots is off", () => {
     expect(shouldRunSnapshots(features({ snapshots: false }))).toBe(false);
     expect(shouldRunSnapshots(features({ snapshots: true }))).toBe(true);
+  });
+});
+
+describe("isSecurityArmed", () => {
+  it("does not arm before setup or while monitor-only", () => {
+    expect(isSecurityArmed({ setupComplete: false, monitorOnly: false })).toBe(false);
+    expect(isSecurityArmed({ setupComplete: true, monitorOnly: true })).toBe(false);
+  });
+
+  it("arms when setup is done and monitor-only is off", () => {
+    expect(isSecurityArmed({ setupComplete: true, monitorOnly: false })).toBe(true);
   });
 });

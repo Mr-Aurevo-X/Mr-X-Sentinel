@@ -31,6 +31,29 @@ describe("config-schema", () => {
     expect(cfg.features).not.toHaveProperty("ai");
     expect(cfg.features.music).toBe(true);
   });
+
+  it("defaults opt-in modules off and anti-nuke to monitor-only", () => {
+    const cfg = defaultGuildConfig();
+    expect(cfg.features.economy).toBe(false);
+    expect(cfg.features.levels).toBe(false);
+    expect(cfg.features.fun).toBe(false);
+    expect(cfg.features.tickets).toBe(false);
+    expect(cfg.features.community).toBe(false);
+    expect(cfg.features.music).toBe(false);
+    expect(cfg.features.security).toBe(true);
+    expect(cfg.features.snapshots).toBe(true);
+    expect(cfg.features.automod).toBe(true);
+    expect(cfg.features.moderation).toBe(true);
+    expect(cfg.features.templates).toBe(true);
+    expect(cfg.antiNuke.monitorOnly).toBe(true);
+  });
+
+  it("keeps stored feature flags from existing guild JSON", () => {
+    const cfg = parseGuildConfig({ features: { music: true, economy: true } });
+    expect(cfg.features.music).toBe(true);
+    expect(cfg.features.economy).toBe(true);
+    expect(cfg.features.security).toBe(true);
+  });
 });
 
 describe("features", () => {

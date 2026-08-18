@@ -1,5 +1,16 @@
 export const BRAND_NAME = "mr-x-sentinel";
 export const BRAND_COLOR = 0x5865f2;
+export const DEFAULT_DASHBOARD_URL = "http://localhost:3000";
+
+export function dashboardPublicUrl(): string {
+  const raw = process.env.NEXTAUTH_URL?.trim();
+  if (!raw) return DEFAULT_DASHBOARD_URL;
+  return raw.replace(/\/$/, "");
+}
+
+export function dashboardGuildUrl(guildId: string): string {
+  return `${dashboardPublicUrl()}/guilds/${guildId}`;
+}
 
 export const REDIS_KEYS = {
   configChannel: (guildId: string) => `mrx:config:${guildId}`,
@@ -10,11 +21,13 @@ export const REDIS_KEYS = {
   lockdownPrev: (guildId: string) => `mrx:lockdown:prev:${guildId}`,
   robCooldown: (guildId: string, thiefId: string, victimId: string) =>
     `mrx:rob:${guildId}:${thiefId}:${victimId}`,
+  ghostWindow: (guildId: string) => `mrx:nuke:${guildId}:ghost`,
+  snapshotLock: (guildId: string) => `mrx:snap:lock:${guildId}`,
 } as const;
 
 export const DEFAULT_ANTI_NUKE = {
   enabled: true,
-  monitorOnly: false,
+  monitorOnly: true,
   instantActions: [
     "CHANNEL_DELETE",
     "ROLE_DELETE",
