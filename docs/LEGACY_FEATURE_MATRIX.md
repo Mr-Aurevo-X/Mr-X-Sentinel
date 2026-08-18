@@ -33,8 +33,9 @@
 | Economy anticheat slash | ✅ | - | - | ✅ | Done |
 | Economy anticheat composants | - | - | - | ✅ | Done |
 | SOFTBAN | - | - | - | ✅ | Done |
-| deferReply (commandes lentes) | ✅ | - | - | ⚠️ | Partiel |
-| Brain docker + /brain status | - | - | - | ✅ | Done |
+| deferReply (commandes lentes) | ✅ | - | - | ✅ | Done |
+| Brain / IA | - | - | - | — | Retiré |
+| `/security arm` / monitor-only | - | - | - | ✅ | Sentinel+ |
 | Tickets reopen/add/remove | ✅ | - | - | ✅ | Done |
 | Migration Ult Postgres | - | - | - | ✅ | Done |
 

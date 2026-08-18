@@ -6,9 +6,16 @@ This product includes software developed by Mr-Aurevo-X
 
 Licensed under the Apache License, Version 2.0.
 
-Fork as you like. Copy, change, and republish on your own repo.
-Keep this NOTICE and the Apache License 2.0. Mark your modifications.
-Do not send pull requests to the original repository — it is frozen.
+This original repository is frozen. The author will not maintain it,
+patch it, review pull requests, or provide support. After public
+release, there are no further fixes from the author. This tree is
+the published snapshot; further work happens only on forks.
+
+Fork as you like. Copy, reuse, and modify on your own side.
+Take what you want; drop the rest. Apache-2.0 duties (keep this
+NOTICE and the Apache License 2.0, mark your modifications) apply
+only to files you redistribute, not to files you remove.
+Do not send pull requests to the original repository.
 
 If you want to leave a small nod for the time spent: this was put
 together by Mr-Aurevo-X, with Cursor (https://cursor.com). Welcome,

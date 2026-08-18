@@ -26,14 +26,15 @@ Pour un bot **allumé en permanence**, il te faut **ton** VPS (machine distante 
 
 ---
 
-## Statut : développement terminé
+## Statut : dépôt figé
 
-Le développement de **cette** version — dépôt [Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main` — est **considéré comme fini** par l’auteur.
+Le développement de **cette** version — dépôt [Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main` — est **terminé**.
 
-- **Pas de support à la demande.** Pas de correctif « parce qu’une issue a été ouverte », pas de feuille de route, pas d’engagement de délai.
+- **Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt : pas de correctif, pas de revue de PR, pas de support.
+- **Après publication publique :** aucun correctif de sa part. Ce dépôt est la photographie de ce qui a été publié. La suite se fait uniquement sur les forks.
 - **Aucune contribution n’est demandée ni autorisée sur ce dépôt.** Pas de PR, pas de patch, pas d’issue « je propose un fix ». Elles ne seront pas examinées ni mergées.
-- **Forkez comme vous voulez** (Apache-2.0) : copiez, modifiez, republiez **ailleurs**. Gardez la [licence](LICENSE) et le [`NOTICE`](NOTICE), et **indiquez clairement vos modifications**. N’envoyez pas de PR ici : ce dépôt est figé. Un clin d’œil à l’auteur (ou à Cursor) est bienvenu s’il vous dit quelque chose — ce n’est **pas** obligatoire.
-- Un fork, un binaire recompilé ou une instance tierce n’engagent **que** leur opérateur. En cas de bug, abus, copie douteuse ou litige, **seul ce dépôt original** fait foi de ce que Mr-Aurevo-X a publié — c’est la preuve de sa bonne foi.
+- **Forkez comme vous voulez** (Apache-2.0) : copiez, réutilisez, modifiez **de votre côté**. Prenez ce que vous voulez, jetez le reste. Les obligations Apache (conserver la [licence](LICENSE) et les mentions du [`NOTICE`](NOTICE), indiquer vos modifications) s’appliquent **uniquement** aux fichiers que vous redistribuez, pas à ceux que vous retirez. N’envoyez pas de PR ici. Un clin d’œil à l’auteur (ou à Cursor) est bienvenu — ce n’est **pas** obligatoire.
+- Un fork, un binaire recompilé ou une instance tierce n’engagent **que** leur opérateur. En cas de litige, **seul ce dépôt original** fait foi de ce que Mr-Aurevo-X a publié.
 - Logiciel fourni **tel quel**, sans garantie d’aucune sorte.
 
 ---
@@ -41,7 +42,8 @@ Le développement de **cette** version — dépôt [Mr-Aurevo-X/Mr-X-Sentinel](h
 ## Sommaire
 
 - [Essais en local](#essais-en-local-gratuit)
-- [Statut : développement terminé](#statut--développement-terminé)
+- [Statut : dépôt figé](#statut--dépôt-figé)
+- [Licence](#licence)
 - [Fonctionnalités](#fonctionnalités)
 - [Prérequis](#prérequis)
 - [Installation](#installation)
@@ -210,8 +212,9 @@ Le panel (`/guilds/[id]`) couvre toute la config : sécurité, automod, communau
 1. Inviter le bot avec le [lien d’invitation](#invitation-permissions-administrateur).
 2. **`/setup`** — logs + quarantaine. La sécurité reste en **surveillance seule**. Active les modules (éco, XP, tickets, fun, musique, communauté) via les boutons.
 3. **`/security whitelist_add`** pour le staff de confiance, puis **`/security arm`**.
-4. **`/fonctionnement`** — guide interactif (réservé au **propriétaire** du serveur).
-5. Si tickets / éco / XP sont activés : `/ticket setup`, `/admin shop_add`, `/levels channel`, `/config welcome`.
+4. **`/dashboard`** — lien du panel web (propriétaire du serveur).
+5. **`/fonctionnement`** — guide interactif (réservé au **propriétaire** du serveur).
+6. Si tickets / éco / XP sont activés : `/ticket setup`, `/admin shop_add`, `/levels channel`, `/config welcome`.
 
 ---
 
@@ -232,6 +235,7 @@ Le panel (`/guilds/[id]`) couvre toute la config : sécurité, automod, communau
 | Commande | Description |
 |----------|-------------|
 | `/setup` | Config initiale, logs, template serveur |
+| `/dashboard` | Lien du panel web de ce serveur (owner) |
 | `/fonctionnement` | Guide complet (owner) |
 | `/logs panel` | Panneau des types de logs |
 | `/logs create` | Créer tous les salons de logs |
@@ -242,6 +246,8 @@ Le panel (`/guilds/[id]`) couvre toute la config : sécurité, automod, communau
 | `/config economy` | Réglages économie (daily/work min-max) |
 | `/template panel` | Panneau templates (appliquer / reset complet) |
 | `/admin announce` | Annonce embed dans un salon |
+| `/admin panel` | Panneau admin + mod |
+| `/admin roles` | Rôles modération / tickets |
 | `/admin shop_add` | Boutique **serveur** — article + rôle (`item_id` pour `/shop buy`) |
 | `/admin shop_remove` | Retirer un article boutique serveur |
 | `/backup create` | Snapshot du serveur |
@@ -432,7 +438,7 @@ Mr-X-Sentinel/
 | `pnpm build` | Build récursif des packages |
 | `pnpm run build:ci` | Build ordonné (comme GitHub Actions) |
 | `pnpm typecheck` | Vérification TypeScript |
-| `pnpm test` | Tests `@sentinel/database`, `@sentinel/core` et `@sentinel/shared` |
+| `pnpm test` | Tests `@sentinel/database`, `@sentinel/core`, `@sentinel/shared`, `@sentinel/bot` et `@sentinel/dashboard` |
 | `pnpm migrate:legacy` | Migration depuis anciens bots SQLite |
 | `pnpm migrate:ult` | Migration **Mr-X-Ult** (PostgreSQL) → Sentinel |
 
@@ -508,6 +514,8 @@ Guides : [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md) · [`docs/RUNBOOK.md`](docs/
 
 [Apache License 2.0](LICENSE). Logiciel fourni « tel quel » (AS IS), sans garantie. L’auteur n’héberge pas d’instance officielle et ne collecte aucune donnée provenant des instances d’autrui.
 
-**Forkez comme vous voulez.** Copiez, changez, republiez sur **votre** dépôt. Gardez la licence et le [`NOTICE`](NOTICE), et indiquez vos modifications (Apache-2.0, §4). **Aucune contribution n’est demandée ni autorisée ici** — pas de PR sur cet original. Voir [Statut : développement terminé](#statut--développement-terminé).
+**Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt. Après publication publique, aucun correctif de sa part : ce dépôt est la photographie de ce qui a été publié. La suite se fait uniquement sur les forks.
+
+**Forkez comme vous voulez.** Copiez, réutilisez, modifiez **de votre côté**. Prenez ce que vous voulez, jetez le reste. Si vous redistribuez du code Apache, conservez la licence et les mentions du [`NOTICE`](NOTICE), et indiquez vos modifications (Apache-2.0, §4) — uniquement pour les fichiers que vous redistribuez. **Aucune contribution n’est demandée ni autorisée ici** — pas de PR sur cet original. Voir [Statut : dépôt figé](#statut--dépôt-figé).
 
 Si ça vous dit, un petit clin d’œil à **[Mr-Aurevo-X](https://github.com/Mr-Aurevo-X)** (et à **[Cursor](https://cursor.com)**) pour le temps passé — bienvenu, **pas obligatoire**. Le dépôt original reste la référence.

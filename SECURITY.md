@@ -2,7 +2,7 @@
 
 ## Versions supportées
 
-Aucune version n’est **maintenue** avec un engagement de correctif. Le dépôt original ([Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main`) est figé : c’est la référence de ce que l’auteur a publié.
+**Maintenance : aucune.** L’auteur ne touchera plus à ce dépôt. Aucune version n’est maintenue. Le dépôt original ([Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main`) est figé : c’est la photographie de ce qui a été publié. Après publication publique, aucun correctif de sa part. La suite se fait uniquement sur les forks.
 
 Les forks et instances auto-hébergées sont sous la **seule** responsabilité de leur opérateur.
 
@@ -12,7 +12,7 @@ Ne crée **pas** d’issue publique pour une faille exploitable.
 
 Tu peux écrire en privé via GitHub ([@Mr-Aurevo-X](https://github.com/Mr-Aurevo-X)) ou l’onglet **Security → Report a vulnerability**. Inclue si possible : commit, impact estimé, étapes de reproduction.
 
-**Aucun délai ni correctif n’est promis.** Un signalement peut rester sans suite. Ce n’est **pas** une invitation à contribuer : pas de PR, pas de patch sur ce dépôt. Le code original tel que publié reste la preuve de la bonne foi de l’auteur ; un fork modifié n’engage pas Mr-Aurevo-X.
+**Aucun délai ni correctif n’est promis.** Un signalement peut rester sans suite. Ce n’est **pas** une invitation à contribuer : pas de PR, pas de patch sur ce dépôt. Le code original tel que publié reste la référence ; un fork modifié n’engage pas Mr-Aurevo-X.
 
 ## Périmètre
 
