@@ -1,31 +1,25 @@
-# Contribuer à Mr-X Sentinel
+# Contributions — non demandées, non autorisées
 
-Merci de ton intérêt ! Quelques règles simples.
+**Aucune contribution n’est demandée ni autorisée sur ce dépôt** ([Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel)).
 
-## Prérequis
+- Pas de pull request.
+- Pas de patch, suggestion de code, ni issue « voici un fix ».
+- Rien de tout cela ne sera examiné, commenté ou mergé.
 
-- Node.js 20 ou 22 LTS, pnpm 9.15+, Docker (Postgres, Redis, Lavalink).
-- Voir le [README](README.md) pour l'installation complète.
+Le développement de `main` est **terminé**. Voir le [README — Statut](README.md#statut--développement-terminé).
 
-## Workflow
+## Forks — forkez comme vous voulez (votre dépôt, pas celui-ci)
 
-1. Fork + branche depuis `main` (`feat/...`, `fix/...`).
-2. `pnpm install`, puis développe.
-3. Avant d'ouvrir une PR :
+Apache-2.0 vous autorise à copier et modifier **ailleurs**. Sur **votre** fork uniquement :
 
-```bash
-pnpm verify   # typecheck + lint + tests + build
-```
+1. Conservez la licence et le fichier [`NOTICE`](NOTICE).
+2. **Indiquez clairement vos modifications** (obligation Apache-2.0, pas une option).
+3. N’attribuez pas vos ajouts à Mr-Aurevo-X. N’ouvrez pas de PR vers ce dépôt.
 
-4. Ouvre une PR claire : quoi, pourquoi, comment tester.
+Garder le nom de l’auteur ou une mention Cursor, c’est un clin d’œil — **pas** une obligation.
 
-## Règles de code
-
-- TypeScript strict, imports en tête de fichier, pas de `any` gratuit.
-- Pas de secrets, de tokens ni d'IDs personnels dans le code, les tests ou la doc.
-- Textes utilisateur du bot en français (cohérence avec l'existant).
-- Un changement de schéma Prisma = une migration dans `packages/database/prisma/migrations`.
+En cas de problème sur une copie modifiée, **seul le dépôt original** fait foi de ce que l’auteur a publié.
 
 ## Sécurité
 
-Pour une faille : voir [SECURITY.md](SECURITY.md) — pas d'issue publique.
+Voir [SECURITY.md](SECURITY.md). Pas d’issue publique. Ce n’est pas une invitation à contribuer.

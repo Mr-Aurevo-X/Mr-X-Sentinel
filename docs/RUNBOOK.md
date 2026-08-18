@@ -1,6 +1,6 @@
 # Runbook — Mr-X Sentinel (production)
 
-Runbook optionnel pour un déploiement que **tu** héberges (ton VPS ou [FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)). L’auteur n’héberge pas ton instance.
+Runbook optionnel pour un déploiement que **tu** héberges : [FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS) (**local**, pas 24/7) ou **ton** VPS (machine distante, à toi). L’auteur n’héberge pas ton instance.
 
 ## Premier déploiement
 
@@ -39,5 +39,7 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 
 - Dashboard : `GET /api/health`
 - Bot : log JSON `sentinel_boot_health` au démarrage
+- Snapshots auto : le **worker** (pas le process bot) capture toutes les 6 h, prune 12 `auto`, garde les `manual`
+- Dashboard : une instance suffit ; le rate-limit restore/lockdown est **in-memory** (pas multi-replica)
 
 Voir aussi [`DEPLOY_VPS.md`](DEPLOY_VPS.md).

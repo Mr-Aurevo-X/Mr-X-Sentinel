@@ -6,27 +6,42 @@ Plateforme Discord unifiée : sécurité, modération, logs, économie, XP, tick
 
 **Prérequis :** Node.js **20 ou 22 LTS** (pas 24+) · pnpm 9.15+ · Docker Desktop (PostgreSQL, Redis, Lavalink)
 
-## Hébergement local (recommandé)
+## Essais en local (gratuit)
 
-Sentinel est open source : tu clones, tu crées **ton** application Discord, tu renseignes **ton** `.env`, tu lances Docker (Postgres, Redis, Lavalink) puis le bot et le dashboard sur **ta** machine (`http://localhost:3000`).
+Le local n’est **pas** le mode d’emploi « officiel » ni un hébergement recommandé pour un serveur en prod. C’est la **solution de départ gratuite** : essayer le bot, remplir le `.env`, tester les slash commands et le dashboard, régler un serveur Discord, sans payer de VPS.
+
+Tu clones, tu crées **ton** application Discord, tu renseignes **ton** `.env`, tu lances Docker (Postgres, Redis, Lavalink) puis le bot et le dashboard sur **ta** machine (`http://localhost:3000`).
 
 L’auteur n’héberge pas ton instance. Il n’y a pas de bot officiel à inviter.
 
-Pour un hébergement local avec dashboard (style VPS chez soi) : **[FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)** — outil local de Mr-Aurevo-X (cockpit `http://127.0.0.1:8787`). Tu y attaches Sentinel comme n’importe quel bot.
+Même chose en local, avec un cockpit « style VPS » : **[FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)** (`http://127.0.0.1:8787`). C’est **de l’hébergement local**, pas du 24/7 : le bot ne tourne que tant que **ta machine** est allumée. Tu y attaches Sentinel comme n’importe quel bot.
 
-Guide optionnel si tu déploies toi-même (ton VPS ou FakeVPS) : [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md). Ce n’est pas le produit Sentinel.
+Pour un bot **allumé en permanence**, il te faut **ton** VPS (machine distante que tu paies et que tu gères). Guide optionnel : [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md). Ce n’est pas le produit Sentinel.
 
 - Invitation : remplace `YOUR_CLIENT_ID` par l’ID de **ton** appli (jamais celle de l’auteur).
-- Redirect OAuth : **ton** URL. En local : `http://localhost:3000/api/auth/callback/discord`.
+- Redirect OAuth : **ton** URL. En essai local : `http://localhost:3000/api/auth/callback/discord`.
 - `.env` jamais commité ; seul `.env.example` est versionné.
 - Musique / Lavalink : à tes risques (sources, quotas, conditions des plateformes).
 - Licence Apache-2.0 : logiciel fourni tel quel (AS IS), sans garantie. L’auteur ne collecte aucune donnée des instances d’autrui.
 
 ---
 
+## Statut : développement terminé
+
+Le développement de **cette** version — dépôt [Mr-Aurevo-X/Mr-X-Sentinel](https://github.com/Mr-Aurevo-X/Mr-X-Sentinel), branche `main` — est **considéré comme fini** par l’auteur.
+
+- **Pas de support à la demande.** Pas de correctif « parce qu’une issue a été ouverte », pas de feuille de route, pas d’engagement de délai.
+- **Aucune contribution n’est demandée ni autorisée sur ce dépôt.** Pas de PR, pas de patch, pas d’issue « je propose un fix ». Elles ne seront pas examinées ni mergées.
+- **Forkez comme vous voulez** (Apache-2.0) : copiez, modifiez, republiez **ailleurs**. Gardez la [licence](LICENSE) et le [`NOTICE`](NOTICE), et **indiquez clairement vos modifications**. N’envoyez pas de PR ici : ce dépôt est figé. Un clin d’œil à l’auteur (ou à Cursor) est bienvenu s’il vous dit quelque chose — ce n’est **pas** obligatoire.
+- Un fork, un binaire recompilé ou une instance tierce n’engagent **que** leur opérateur. En cas de bug, abus, copie douteuse ou litige, **seul ce dépôt original** fait foi de ce que Mr-Aurevo-X a publié — c’est la preuve de sa bonne foi.
+- Logiciel fourni **tel quel**, sans garantie d’aucune sorte.
+
+---
+
 ## Sommaire
 
-- [Hébergement local](#hébergement-local-recommandé)
+- [Essais en local](#essais-en-local-gratuit)
+- [Statut : développement terminé](#statut--développement-terminé)
 - [Fonctionnalités](#fonctionnalités)
 - [Prérequis](#prérequis)
 - [Installation](#installation)
@@ -39,7 +54,7 @@ Guide optionnel si tu déploies toi-même (ton VPS ou FakeVPS) : [`docs/DEPLOY_V
 - [Architecture](#architecture)
 - [Dépannage](#dépannage)
 - [Développement et CI](#développement-et-ci)
-- [Déploiement optionnel](#déploiement-optionnel-ton-vps-ou-fakevps)
+- [Déploiement optionnel](#déploiement-optionnel-ton-vps)
 
 ---
 
@@ -47,15 +62,15 @@ Guide optionnel si tu déploies toi-même (ton VPS ou FakeVPS) : [`docs/DEPLOY_V
 
 | Module | Description | Activation |
 |--------|-------------|------------|
-| **Sécurité** | Anti-nuke, anti-raid, automod, lockdown, snapshots | `/config feature` (modules par défaut on) |
-| **Modération** | Slash dédiés + `/panel` interactif (boutons) + `/nuke` (clone salon) | `moderation` (défaut: on) |
+| **Sécurité** | Anti-nuke, anti-raid, automod, lockdown, snapshots | **on** (exécution après `/security arm`) |
+| **Modération** | Slash dédiés + `/panel` interactif (boutons) + `/nuke` (clone salon) | **on** |
 | **Logs** | 10 types actifs, catégorie **Logs Sentinel**, rôle **Logs** | `/setup create_logs:true` ou `/logs create` |
-| **Communauté** | XP (embed level-up, streak), welcome/goodbye, polls, giveaways, reaction roles | `community`, `levels` |
-| **Économie** | Portefeuille, banque, **$**, daily/weekly/monthly, catalogue `/shop catalog` + boutique rôles `/shop` | `economy` |
-| **Fun** | Coinflip, slots, roulette, **blackjack interactif** via `/fun` + hubs casino/mini-jeux (boutons du `/sentinel menu`) | `fun` |
-| **Tickets** | Panneau, ouverture, claim, fermeture | `tickets` |
-| **Templates** | 14 structures de serveur (rôles + salons) | `/setup template:…` |
-| **Musique** | `/music play` + contrôles (Lavalink) | `music` + Docker Lavalink |
+| **Communauté** | XP (embed level-up, streak), welcome/goodbye, polls, giveaways, reaction roles | `community`, `levels` (**off** par défaut) |
+| **Économie** | Portefeuille, banque, **$**, daily/weekly/monthly, catalogue `/shop catalog` + boutique rôles `/shop` | `economy` (**off** par défaut) |
+| **Fun** | Coinflip, slots, roulette, **blackjack interactif** via `/fun` + hubs casino/mini-jeux | `fun` (**off** par défaut) |
+| **Tickets** | Panneau, ouverture, claim, fermeture | `tickets` (**off** par défaut) |
+| **Templates** | 14 structures de serveur (rôles + salons) | `/setup template:…` (**on**) |
+| **Musique** | `/music play` + contrôles (Lavalink) | `music` (**off** par défaut) + Docker Lavalink |
 
 Hub membre : **`/sentinel menu`** (navigation boutons, embeds premium — économie, casino, mini-jeux).
 
@@ -89,7 +104,7 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=8&
 
 ## Installation
 
-Chemin recommandé : clone + Docker sur ta machine. Pour un nœud local « comme un VPS chez soi » (dashboard) : **[FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)**. Ouvre le dossier cloné comme racine de ton éditeur. Après un déplacement de dossier : `pnpm install` puis `pnpm db:generate`.
+Pour **essayer et configurer** : clone + Docker **sur ta machine** (gratuit). Ce n’est **pas** un hébergement recommandé, ni du 24/7 : PC éteint = bot hors ligne. **[FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)** est le même essai local (cockpit style VPS chez toi), pas une machine distante. Pour un bot **allumé en permanence** : [ton propre VPS](#déploiement-optionnel-ton-vps). Ouvre le dossier cloné comme racine de ton éditeur. Après un déplacement de dossier : `pnpm install` puis `pnpm db:generate`.
 
 > ⚠️ Remplis le `.env` **avant** `docker compose up -d` : `docker-compose.yml` refuse de démarrer si `LAVALINK_PASSWORD` est vide.
 
@@ -193,13 +208,10 @@ Le panel (`/guilds/[id]`) couvre toute la config : sécurité, automod, communau
 ## Premier usage sur Discord
 
 1. Inviter le bot avec le [lien d’invitation](#invitation-permissions-administrateur).
-2. **`/setup`** — `create_logs:true` pour créer les salons de logs ; option `template:gaming` (voir [Templates](#templates-serveur)).
-3. **`/fonctionnement`** — guide interactif (réservé au **propriétaire** du serveur).
-4. **`/ticket setup`** — choisir le salon du panneau tickets (+ rôle support optionnel).
-5. **`/admin shop_add`** — boutique **rôles serveur** (optionnel ; distinct du catalogue `/shop catalog`).
-6. **`/config welcome_panel`** ou **`/config welcome`** — salons bienvenue / départ / rôle auto.
-7. **`/levels channel`** — salon des annonces level-up (embed premium).
-8. **`/config feature`** — activer/désactiver `community`, `economy`, `levels`, `tickets`, `music`, `fun`.
+2. **`/setup`** — logs + quarantaine. La sécurité reste en **surveillance seule**. Active les modules (éco, XP, tickets, fun, musique, communauté) via les boutons.
+3. **`/security whitelist_add`** pour le staff de confiance, puis **`/security arm`**.
+4. **`/fonctionnement`** — guide interactif (réservé au **propriétaire** du serveur).
+5. Si tickets / éco / XP sont activés : `/ticket setup`, `/admin shop_add`, `/levels channel`, `/config welcome`.
 
 ---
 
@@ -234,8 +246,10 @@ Le panel (`/guilds/[id]`) couvre toute la config : sécurité, automod, communau
 | `/admin shop_remove` | Retirer un article boutique serveur |
 | `/backup create` | Snapshot du serveur |
 | `/backup list` | Lister les snapshots |
-| `/backup restore` | Planifier une restauration (rôles, catégories, salons, overwrites, emojis — pas les bans ni les messages) |
-| `/security status` | État sécurité / lockdown |
+| `/backup restore` | Restaurer : `repair` (défaut, recrée le manquant) ou `full` (owner, supprime aussi le surplus) |
+| `/security status` | État sécurité / lockdown / armé |
+| `/security arm` | Armer anti-nuke (après setup + whitelist) |
+| `/security disarm` | Repasser en surveillance seule |
 | `/security lockdown` | Activer le lockdown |
 | `/security unlock` | Désactiver le lockdown |
 
@@ -389,7 +403,7 @@ Mr-X-Sentinel/
 │   │       ├── ui/embeds.ts    # Charte embeds
 │   │       ├── services/       # Level-up, blackjack, community listeners…
 │   │       ├── music/          # Lavalink / Kazagumo
-│   │       ├── worker.ts       # File restore (BullMQ / Redis)
+│   │       ├── worker.ts       # Restore, lockdown, snapshots auto (BullMQ / Redis)
 │   │       └── index.ts | shard.ts
 │   └── dashboard/              # Next.js 15 — site public + panel tuiles
 │       ├── app/                # Landing, /guilds, API config/jobs/lecture
@@ -474,9 +488,12 @@ Voir [`docs/TESTING.md`](docs/TESTING.md). CI : [`/.github/workflows/ci.yml`](.g
 
 ---
 
-## Déploiement optionnel (ton VPS ou FakeVPS)
+## Déploiement optionnel (ton VPS)
 
-Ce n’est pas le produit Sentinel. L’auteur n’héberge pas d’instance publique. Tu peux déployer la même stack sur **ton** VPS, ou la répéter dans **[FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)** (hébergement local style VPS, cockpit dashboard).
+- **FakeVPS** : essai **local** seulement (ta machine, cockpit dashboard). Pas un hébergement recommandé, pas du 24/7.
+- **Ton VPS** : si tu veux un bot allumé en permanence, c’est **toi** qui fournis et paies la machine distante. Ce n’est pas un service de l’auteur.
+
+L’auteur n’héberge pas d’instance publique. Ce n’est pas le produit Sentinel.
 
 ```bash
 cp .env.production.example .env
@@ -489,4 +506,8 @@ Guides : [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md) · [`docs/RUNBOOK.md`](docs/
 
 ## Licence
 
-[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0). Logiciel fourni « tel quel » (AS IS), sans garantie. L’auteur n’héberge pas d’instance officielle et ne collecte aucune donnée provenant des instances d’autrui.
+[Apache License 2.0](LICENSE). Logiciel fourni « tel quel » (AS IS), sans garantie. L’auteur n’héberge pas d’instance officielle et ne collecte aucune donnée provenant des instances d’autrui.
+
+**Forkez comme vous voulez.** Copiez, changez, republiez sur **votre** dépôt. Gardez la licence et le [`NOTICE`](NOTICE), et indiquez vos modifications (Apache-2.0, §4). **Aucune contribution n’est demandée ni autorisée ici** — pas de PR sur cet original. Voir [Statut : développement terminé](#statut--développement-terminé).
+
+Si ça vous dit, un petit clin d’œil à **[Mr-Aurevo-X](https://github.com/Mr-Aurevo-X)** (et à **[Cursor](https://cursor.com)**) pour le temps passé — bienvenu, **pas obligatoire**. Le dépôt original reste la référence.

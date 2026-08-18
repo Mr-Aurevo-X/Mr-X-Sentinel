@@ -1,6 +1,11 @@
 # Déploiement VPS — Mr-X Sentinel
 
-Ce guide est **optionnel**. Sentinel n’est pas un service hébergé : tu clones et tu tournes chez toi. Tu peux appliquer ces étapes sur **ton** VPS, ou dans **[FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)** (nœud local style VPS, cockpit dashboard). Ce n’est pas le produit Sentinel.
+Ce guide est **optionnel**. Sentinel n’est pas un service hébergé : tu clones et tu tournes chez toi.
+
+- **[FakeVPS](https://github.com/Mr-Aurevo-X/FakeVPS)** : hébergement **local** (cockpit dashboard). Le bot s’arrête si ta machine s’éteint. Ce n’est **pas** du 24/7.
+- **Ton VPS** : machine distante que tu gères, si tu veux un bot allumé en permanence.
+
+Ce n’est pas le produit Sentinel.
 
 Ubuntu 22.04/24.04. **Node.js 20 ou 22 LTS** si tu lances `deploy-commands` hors Docker.
 
